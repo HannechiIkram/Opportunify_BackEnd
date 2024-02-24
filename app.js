@@ -9,7 +9,25 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
+// Importation de la bibliothèque Mongoose
+const mongoose = require('mongoose');
+
+// Chargement de la configuration de la base de données depuis le fichier mongodb.json
+const configDB = require('./database/mongodb.json');
+
+// Configuration de la connexion à MongoDB ( avec promess )
+mongoose.connect(configDB.mongo.uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log("Connected to DB !!");
+}).catch((error) => {
+  console.error("Error connecting to DB:", error);
+});
+
+
 // view engine setup
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -18,7 +36,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+//app.use('/', './routes/users');
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
