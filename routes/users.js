@@ -1,11 +1,10 @@
 var express = require('express');
 var router = express.Router();
-const app = express();
-const cors = require ('cors');
-const {registerUser,loginUser}=require('../Controllers/UserController');
+
+const {loginUser, registerUserjobseeker}=require('../Controllers/UserController');
 
 
-router.post('/register',  registerUser)
+router.post('/registerjobseeker',  registerUserjobseeker)
 router.post('/login',  loginUser)
 module.exports = router;
  

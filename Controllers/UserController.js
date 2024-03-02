@@ -1,38 +1,39 @@
-const UserModel = require('../models/user'); // Adjust the path accordingly
+const UserModel = require('../models/user-jobseeker'); // Adjust the path accordingly
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 
-// Test endpoint
-const test = (req, res) => {
-  res.json('test is working');
-};
-
-// Sign up endpoint (register)
-const registerUser = async (req, res) => {
+// Sign up endpoint (register du job seeker)
+const registerUserjobseeker = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name,lastname,birthdate, email,phone,adress, password, } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
+    if (!name || !lastname||!birthdate||!email ||!phone||!adress ||!password) {
+      return res.status(400).json({ error: 'All the fields are required' });
     }
-
+/*//// controle de saisie à refaire apres celui du frontend (meme controle)
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
-
+*/
     const exist = await UserModel.findOne({ email });
     if (exist) {
       return res.status(400).json({ error: 'Email is already taken' });
     }
 
     const hashedPassword = await hashPassword(password);
-    const newUser = await UserModel.create({
+    const newUserjobseeker = await UserModel.create({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      lastname,
+      birthdate,
+      phone,
+      adress,
+      password
+
     });
 
-    return res.status(201).json(newUser);
+    return res.status(201).json(newUserjobseeker);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal Server Error' });
@@ -68,7 +69,7 @@ const loginUser = async (req, res) => {
 };
 
 module.exports = {
-  test,
-  registerUser,
+ 
+  registerUserjobseeker,
   loginUser
 };
