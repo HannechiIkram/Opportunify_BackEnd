@@ -29,7 +29,7 @@ const registerUserjobseeker = async (req, res) => {
       birthdate,
       phone,
       adress,
-      password
+     
 
     });
 
