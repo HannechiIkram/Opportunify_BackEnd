@@ -4,10 +4,10 @@ const { comparePassword, hashPassword } = require('../helpers/auth');
 // Sign up endpoint (register du job seeker)
 const registerUserjobseeker = async (req,res) => {
   try {
-    const { name,lastname,birthdate, email,phone,address, password,role_jobseeker } = req.body;
+    const { name,lastname,birthdate, email,phone,address, password,role_jobseeker,confirmPassword } = req.body;
 
 // required sur tous les champs ils doivent etre remplis
-    if (!name || !lastname||!birthdate||!email ||!phone||!address ||!password ||!role_jobseeker) {
+    if (!name || !lastname||!birthdate||!email ||!phone||!address ||!password ||!role_jobseeker||!confirmPassword) {
       return res.status(400).json({ error: 'All the fields are required' });
     }
 //// controle de saisie à refaire apres celui du frontend (meme controle)
@@ -53,6 +53,11 @@ if (lastname.length < minNameLength || lastname.length > maxNameLength) {
   return res.status(400).json({ error: 'Address must be at least 5 characters long.' });
 }
 
+//confirm password 
+ // Confirm password validation
+ if (password !== confirmPassword) {
+  return res.status(400).json({ error: 'Password and confirm password do not match.' });
+}
 
 
 
