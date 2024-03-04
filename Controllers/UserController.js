@@ -3,6 +3,14 @@ const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');  // Import nodemailer here
+const rateLimit = require('express-rate-limit');
+const slowDown = require('express-slow-down');
+const passport = require('passport');
+const InstagramStrategy = require('passport-instagram').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+
 
 // Import the transporter configuration (make sure the path is correct)
 const transporter = require('../nodemailer-config');
@@ -85,7 +93,26 @@ const validateSocialMediaLinks = (socialMedia) => {
   }
 
   return { valid: true };
-};const loginUser = async (req, res) => {
+};
+
+
+// Set up rate limiting for login attempts
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Max 5 requests per windowMs
+  message: 'Too many login attempts, please try again later.',
+});
+
+// Set up slowing down for login attempts
+const speedLimiter = slowDown({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  delayAfter: 3, // After 3 requests within windowMs, delay subsequent requests
+  delayMs: 1000, // 1 second delay
+});
+
+///// login with Protection Against Brute Force Attacks
+
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -138,9 +165,7 @@ const validateSocialMediaLinks = (socialMedia) => {
   }
 };
 
-
-
-// UserController.js
+// Refresh token
 const refreshAccessToken = (req, res) => {
   try {
     // Get the refresh token from the HTTP-only cookie
@@ -164,8 +189,7 @@ const refreshAccessToken = (req, res) => {
     console.error('Refresh Token Error:', error);
     return res.status(401).json({ error: 'Unauthorized' });
   }
-};
-const forgotPassword = async (req, res) => {
+};const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await UserModel.findOne({ email });
@@ -175,17 +199,20 @@ const forgotPassword = async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpires = Date.now() + 3600000; // 1 hour expiration
 
     user.resetToken = resetToken;
-    user.resetTokenExpires = Date.now() + 3600000; // 1 heure d'expiration
+    user.resetTokenExpires = resetTokenExpires;
 
     await user.save();
 
+    const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
+
     const mailOptions = {
-      from: 'hannechiikram49@gmail.com',
+      from: 'ikram.hannechi@esprit.tn',
       to: email,
       subject: 'Réinitialisation de mot de passe',
-      text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : http://votre_application.com/reset-password?token=${resetToken}`
+      text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -203,16 +230,80 @@ const forgotPassword = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => {
-  // ... (Votre code pour la fonction de réinitialisation du mot de passe)
-};
+  try {
+    const { resetToken, newPassword } = req.body;
 
+    const user = await UserModel.findOne({
+      resetToken,
+      resetTokenExpires: { $gt: Date.now() },
+    });
 
+    if (!user) {
+      console.error('Invalid or expired reset token:', resetToken);
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Reset Password Error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};/*
+// Configure Instagram Strategy
+passport.use(new InstagramStrategy({
+  clientID: 'YOUR_INSTAGRAM_CLIENT_ID',
+  clientSecret: 'YOUR_INSTAGRAM_CLIENT_SECRET',
+  callbackURL: 'http://localhost:5173/auth/instagram/callback' // Adjust the callback URL as needed
+}, (accessToken, refreshToken, profile, done) => {
+  // Handle user data returned by Instagram and save it in your database
+  return done(null, profile);
+}));
+
+// Configure Facebook Strategy
+passport.use(new FacebookStrategy({
+  clientID: 'YOUR_FACEBOOK_APP_ID',
+  clientSecret: 'YOUR_FACEBOOK_APP_SECRET',
+  callbackURL: 'http://localhost:5173/auth/facebook/callback' // Adjust the callback URL as needed
+}, (accessToken, refreshToken, profile, done) => {
+  // Handle user data returned by Facebook and save it in your database
+  return done(null, profile);
+}));
+
+// Configure Google Strategy
+passport.use(new GoogleStrategy({
+  clientID: 'YOUR_GOOGLE_CLIENT_ID',
+  clientSecret: 'YOUR_GOOGLE_CLIENT_SECRET',
+  callbackURL: 'http://localhost:5173/auth/google/callback' // Adjust the callback URL as needed
+}, (accessToken, refreshToken, profile, done) => {
+  // Handle user data returned by Google and save it in your database
+  return done(null, profile);
+}));
+
+// Configure LinkedIn Strategy
+passport.use(new LinkedInStrategy({
+  clientID: 'YOUR_LINKEDIN_CLIENT_ID',
+  clientSecret: 'YOUR_LINKEDIN_CLIENT_SECRET',
+  callbackURL: 'http://localhost:5173/auth/linkedin/callback' // Adjust the callback URL as needed
+}, (accessToken, refreshToken, profile, done) => {
+  // Handle user data returned by LinkedIn and save it in your database
+  return done(null, profile);
+}));
+*/
 module.exports = {
   test,
   registerUser,
   loginUser,
   refreshAccessToken,
   forgotPassword, 
-  resetPassword
+  resetPassword,
+  loginLimiter,
+  speedLimiter
 
 };

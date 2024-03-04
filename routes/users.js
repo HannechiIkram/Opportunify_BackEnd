@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
 const crypto = require('crypto');
-
+const passport = require('passport');
 const cors = require ('cors');
-const { test, registerUser, loginUser , refreshAccessToken , forgotPassword , resetPassword } = require('../Controllers/UserController');
+const { test, registerUser, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
 
 router.use(
   cors({
@@ -17,7 +17,7 @@ router.get('/', function(req, res, next) {
   res.send('respond with a resource');
 });*/
 router.post('/register', registerUser)
-router.post('/login', loginUser)
+router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
 
 // Add the new routes
@@ -44,7 +44,46 @@ router.post('/logout', (req, res) => {
     console.error('Logout Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-});
+});/*
+//Instagram authentication route
+router.get('/auth/instagram', passport.authenticate('instagram'));
+router.get('/auth/instagram/callback',
+  passport.authenticate('instagram', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful Instagram authentication redirect logic
+    res.redirect('/');
+  }
+);
+
+// Facebook authentication route
+router.get('/auth/facebook', passport.authenticate('facebook'));
+router.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful Facebook authentication redirect logic
+    res.redirect('/');
+  }
+);
+
+// Google authentication route
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful Google authentication redirect logic
+    res.redirect('/');
+  }
+);
+
+// LinkedIn authentication route
+router.get('/auth/linkedin', passport.authenticate('linkedin'));
+router.get('/auth/linkedin/callback',
+  passport.authenticate('linkedin', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successful LinkedIn authentication redirect logic
+    res.redirect('/');
+  }
+);*/
 
 
 module.exports = router;

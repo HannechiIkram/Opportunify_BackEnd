@@ -1,20 +1,15 @@
 // nodemailer-config.js
 const nodemailer = require('nodemailer');
 
-// Create a Nodemailer transporter using SMTP for Gmail
+// Create a Nodemailer transporter using SMTP for Microsoft Outlook/Office 365
 const transporter = nodemailer.createTransport({
- service:'gmail',
+  host: 'smtp.office365.com',  // Update the host for Outlook/Office 365
+  port: 587,  // Port for Outlook/Office 365
+  secure: false,  // Set to true if using port 465, false for other ports
   auth: {
-    user: 'hannechiikram94@gmail.com',  // Replace with your actual Gmail email address
-    pass: 'tnyb upzw ntxq fvqa',     // Use the App Password generated for your app
-  },
+    user: 'ikram.hannechi@esprit.tn',  // Replace with your Outlook/Office 365 email address
+    pass: 'Ih123456**',  // Use your Outlook/Office 365 email password
+  }, 
 });
-//////massaoudghassen9@gmail.com
-
-
 
 module.exports = transporter;
-
-
-
-
