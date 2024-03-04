@@ -1,7 +1,7 @@
 const mongoose = require ('mongoose'); 
 const {Schema} = mongoose
-
-
+///ikram
+//ikram
 const userSchema = new Schema({
   name: String,
   email: {
@@ -9,7 +9,18 @@ const userSchema = new Schema({
     unique: true  
 
   }, 
-  password: String
+  password: String,
+  matriculeFiscale: String,
+  description: String,
+  socialMedia: {
+    facebook: String,
+    twitter: String,
+    linkedin: String,
+    // ... add other social media fields as needed
+  },
+  address: String,
+  phoneNumber: String,
+  domainOfActivity: String
 
 })
 
