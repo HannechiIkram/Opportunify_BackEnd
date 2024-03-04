@@ -1,21 +1,19 @@
-const mongoose = require ('mongoose'); 
-const {Schema} = mongoose
+const mongoose = require('mongoose'); 
+const { Schema } = mongoose;
 
-const userjobseekerSchema = new Schema({
-    name: String,
-    lastname: String,
-    email: {
-      type: String,
-      unique: true  
+const userJobSeekerSchema = new Schema({
   
-    }, 
-    birthdate:Date,
-    phone: Number,
-    adress:String,
-    password: String,
+    name: String,
+  lastname: String,
+  email: {
+    type: String,
+    unique: true  
+  }, 
+  birthdate: Date,
+  phone: Number,
+  address: String,
+  password: String,
+  role_jobseeker: { type: String, enum: ['student', 'alumni', 'staff'] }
+});
 
-   // resetPasswordToken: String,
-    //resetPasswordExpires: Date,
-  })
-  const UserModel = mongoose.model('Userjobseeker', userjobseekerSchema)
-  module.exports = UserModel;
+module.exports= mongoose.model('UserJobSeeker', userJobSeekerSchema);

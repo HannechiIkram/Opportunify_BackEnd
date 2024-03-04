@@ -1,44 +1,51 @@
-const UserModel = require('../models/user-jobseeker'); // Adjust the path accordingly
+const UserModel = require('../models/user'); 
+const UserjobseekerModel = require('../models/user-jobseeker'); 
+
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 
-// Sign up endpoint (register du job seeker)
-const registerUserjobseeker = async (req, res) => {
-  try {
-    const { name,lastname,birthdate, email,phone,adress, password, } = req.body;
 
-    if (!name || !lastname||!birthdate||!email ||!phone||!adress ||!password) {
-      return res.status(400).json({ error: 'All the fields are required' });
+//ajouter un user quelconque( pour l'admin peut etre)
+const registerUser = async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+
+    // Validate input
+    if (!email || !password || !role) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
-/*//// controle de saisie à refaire apres celui du frontend (meme controle)
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
-    }
-*/
-    const exist = await UserModel.findOne({ email });
-    if (exist) {
+
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ error: 'Email is already taken' });
     }
 
+    // Hash the password
     const hashedPassword = await hashPassword(password);
-    const newUserjobseeker = await UserModel.create({
-      name,
+
+    // Create new user
+    const newUser = await UserModel.create({
       email,
       password: hashedPassword,
-      lastname,
-      birthdate,
-      phone,
-      adress,
-     
-
+      role,
     });
 
-    return res.status(201).json(newUserjobseeker);
+    // Return response
+    return res.status(201).json({
+      id: newUser._id,
+      email: newUser.email,
+      role: newUser.role,
+    });
   } catch (error) {
-    console.error(error);
+    console.error('Error during user registration:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
+
+
 
 // Login endpoint
 const loginUser = async (req, res) => {
@@ -69,7 +76,6 @@ const loginUser = async (req, res) => {
 };
 
 module.exports = {
- 
-  registerUserjobseeker,
+ registerUser,
   loginUser
 };
