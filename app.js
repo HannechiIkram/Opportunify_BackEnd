@@ -8,14 +8,20 @@ const cors = require('cors');
 var cookieParser = require('cookie-parser');
 require('dotenv').config();
 
+
+
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
 
 
+
 // Importation de la bibliothèque Mongoose
 const mongoose = require('mongoose');
+//const passport = require('passport'); // Import passport if not already imported
+
 
 // Chargement de la configuration de la base de données depuis le fichier mongodb.json
 const configDB = require('./database/mongodb.json');
@@ -32,10 +38,11 @@ mongoose.connect(configDB.mongo.uri, {
 
 
 // view engine setup
-
+//app.use(passport.initialize());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-
+app.use(cookieParser());
+app.use(express.urlencoded({extended: false}))
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -65,6 +72,7 @@ app.use(express.urlencoded({extended:false}));
 app.use(function(req, res, next) {
   next(createError(404));
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {
