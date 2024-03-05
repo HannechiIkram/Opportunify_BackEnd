@@ -3,6 +3,16 @@ const UserModel = require('../models/user');
 const UserCompanyModel = require('../models/user-company');
 
 const { comparePassword, hashPassword } = require('../helpers/auth');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');  // Import nodemailer here
+const rateLimit = require('express-rate-limit');
+const slowDown = require('express-slow-down');
+const passport = require('passport');
+const InstagramStrategy = require('passport-instagram').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 
 
 //ajouter un user quelconque( pour l'admin peut etre)
@@ -40,18 +50,7 @@ const registerUser = async (req, res) => {
   } catch (error) {
     console.error('Error during user registration:', error);}
   }
-const UserCompanyModel = require('../models/user-company');
-const { comparePassword, hashPassword } = require('../helpers/auth');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');  // Import nodemailer here
-const rateLimit = require('express-rate-limit');
-const slowDown = require('express-slow-down');
-const passport = require('passport');
-const InstagramStrategy = require('passport-instagram').Strategy;
-const FacebookStrategy = require('passport-facebook').Strategy;
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+
 
 
 // Import the transporter configuration (make sure the path is correct)
@@ -102,7 +101,7 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
 
     // Création d'un nouveau modèle d'utilisateur avec les nouveaux champs
     const hashedPassword = await hashPassword(password);
-    const newUser = await UserCompanyModel.create({
+    const newCompanyUser = await UserCompanyModel.create({
       name,
       email,
       password: hashedPassword,
@@ -113,9 +112,19 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
       phoneNumber,
       domainOfActivity
     });
-
+    const newUser = await UserModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'company',
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity});
     // Retourner la réponse avec le nouvel utilisateur créé
-    return res.status(201).json(newUser);
+    return res.status(201).json(({msg:"user added successfully",newUser,newCompanyUser}));
   } catch (error) {
     // Gestion des erreurs
     console.error(error);
@@ -208,8 +217,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-
-  
 
 // Refresh token
 const refreshAccessToken = (req, res) => {

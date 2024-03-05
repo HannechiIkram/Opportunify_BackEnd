@@ -22,7 +22,10 @@ const userSchema = new Schema({
   phoneNumber: String,
   domainOfActivity: String,
   resetToken: String,
+  resetTokenExpires: Date,
+  resetToken: String,
   resetTokenExpires: Date
+
 
 })
 

@@ -10,7 +10,10 @@ const userSchema = new mongoose.Schema({
     type: Object,
     default: {},
     select: false 
-  }
+  },
+  resetToken: String,
+  resetTokenExpires: Date
+
 });
 
 // Add permissions based on user role
