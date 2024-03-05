@@ -18,10 +18,10 @@ const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 //ajouter un user quelconque( pour l'admin peut etre)
 const registerUser = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { name,email, password, role } = req.body;
 
     // Validate input
-    if (!email || !password || !role) {
+    if (!email || !password || !role||!name) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -36,6 +36,7 @@ const registerUser = async (req, res) => {
 
     // Create new user
     const newUser = await UserModel.create({
+      name,
       email,
       password: hashedPassword,
       role,

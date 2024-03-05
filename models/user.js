@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { rolePermissions } = require('../helpers/permissions');
 
 const userSchema = new mongoose.Schema({
+  name:String,
   email: { type: String, required: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['job_seeker', 'company', 'admin'], required: true },
