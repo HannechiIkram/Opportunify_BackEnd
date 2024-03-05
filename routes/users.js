@@ -3,7 +3,7 @@ var router = express.Router();
 const crypto = require('crypto');
 const passport = require('passport');
 const cors = require ('cors');
-const { test, registerUser, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
+const { test, registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
 
 router.use(
   cors({
@@ -16,7 +16,7 @@ router.get('/', test);
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
 });*/
-router.post('/register', registerUser)
+router.post('/registerCompany', registerUserCompany)
 router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
 

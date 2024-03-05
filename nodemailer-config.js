@@ -7,8 +7,8 @@ const transporter = nodemailer.createTransport({
   port: 587,  // Port for Outlook/Office 365
   secure: false,  // Set to true if using port 465, false for other ports
   auth: {
-    user: 'ikram.hannechi@esprit.tn',  // Replace with your Outlook/Office 365 email address
-    pass: 'Ih123456**',  // Use your Outlook/Office 365 email password
+    user: 'samar.rebhi@esprit.tn',  // Replace with your Outlook/Office 365 email address
+    pass: 'ozark.123',  // Use your Outlook/Office 365 email password
   }, 
 });
 

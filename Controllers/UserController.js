@@ -1,4 +1,4 @@
-const UserModel = require('../models/user');
+const UserCompanyModel = require('../models/user-company');
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -17,7 +17,7 @@ const transporter = require('../nodemailer-config');
 // Test endpoint
 const test = (req, res) => {
   res.json('test is working');
-};const registerUser = async (req, res) => {
+};const registerUserCompany = async (req, res) => {
   try {
     const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity } = req.body;
 
@@ -32,7 +32,7 @@ const test = (req, res) => {
     }
 
     // Vérification si l'email est déjà pris
-    const exist = await UserModel.findOne({ email });
+    const exist = await UserCompanyModel.findOne({ email });
     if (exist) {
       return res.status(400).json({ error: 'Email is already taken' });
     }
@@ -60,7 +60,7 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
 
     // Création d'un nouveau modèle d'utilisateur avec les nouveaux champs
     const hashedPassword = await hashPassword(password);
-    const newUser = await UserModel.create({
+    const newUser = await UserCompanyModel.create({
       name,
       email,
       password: hashedPassword,
@@ -209,7 +209,7 @@ const refreshAccessToken = (req, res) => {
     const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: 'ikram.hannechi@esprit.tn',
+      from: 'samar.rebhi@esprit.tn',
       to: email,
       subject: 'Réinitialisation de mot de passe',
       text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,
@@ -298,7 +298,7 @@ passport.use(new LinkedInStrategy({
 */
 module.exports = {
   test,
-  registerUser,
+  registerUserCompany,
   loginUser,
   refreshAccessToken,
   forgotPassword, 
