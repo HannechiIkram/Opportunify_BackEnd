@@ -8,7 +8,6 @@ const mongo = require("mongoose");
 const mongoconnection = require("./database/mongodb.json");
 const cors = require('cors');
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 var applicationRouter = require('./routes/application');
 
 var app = express();

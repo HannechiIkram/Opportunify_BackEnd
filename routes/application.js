@@ -83,8 +83,8 @@ router.get("/search/date/:date", async function (req, res) {
   const transporter = nodemailer.createTransport({
     service: 'hotmail',
     auth: {
-        user: 'ahmedboudhina@live.com',
-        pass: 'rim25457352'
+        user: 'opportunify@outlook.com',
+        pass: 'Ahmed123.'
     },
     tls: {
         rejectUnauthorized: false // Trust the self-signed certificate
@@ -118,7 +118,7 @@ router.get("/search/date/:date", async function (req, res) {
 
       // Send email notification
       const mailOptions = {
-          from: 'ahmedboudhina@live.com',
+          from: 'opportunify@outlook.com',
           to: req.body.email,
           subject: 'Application Submitted Successfully',
           text: 'Your application has been submitted successfully. We will review it shortly.'
