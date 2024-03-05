@@ -1,8 +1,6 @@
 const UserModel = require('../models/user'); 
-const UserjobseekerModel = require('../models/user-jobseeker'); 
 
 const { comparePassword, hashPassword } = require('../helpers/auth');
-const jwt = require('jsonwebtoken');
 
 
 //ajouter un user quelconque( pour l'admin peut etre)
@@ -46,36 +44,7 @@ const registerUser = async (req, res) => {
 
 
 
-
-// Login endpoint
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await UserModel.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ error: 'User not found' });
-    }
-
-    const match = await comparePassword(password, user.password);
-    if (!match) {
-      return res.status(400).json({ error: 'Passwords don\'t match' });
-    }
-
-    jwt.sign({ email: user.email, id: user._id, name: user.name }, process.env.JWT_SECRET, {}, (err, token) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Error signing JWT' });
-      }
-      res.cookie('token', token).json(user);
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-};
-
 module.exports = {
  registerUser,
-  loginUser
+  
 };
