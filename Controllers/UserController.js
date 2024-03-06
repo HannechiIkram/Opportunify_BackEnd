@@ -387,6 +387,7 @@ const getUserCompany = async (req, res) => {
   }
 };
 
+///register company
 
 const createUserCompany = async (req, res) => {
   try {

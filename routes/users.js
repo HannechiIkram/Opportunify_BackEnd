@@ -3,23 +3,24 @@ var router = express.Router();
 
 const User = require("../models/user");
 
-const { registerUser}=require('../Controllers/UserController');
-const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
-const {createUserCompany}=require('../Controllers/UserController');
-/// for the dashboard
-router.post('/registeruser',registerUser)
-router.post('/registerjobseeker',  registerUserjobseeker)
-router.post('/registercompany',  createUserCompany)
-const { getUsers } = require('../Controllers/UserController')
-const { getUserCompany } = require('../Controllers/UserController')
-
-
-const accessControl = require('../midill/accescontrol');
-
 const crypto = require('crypto');
 const passport = require('passport');
 const cors = require ('cors');
 const { test, registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
+
+const { registerUser}=require('../Controllers/UserController');
+const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
+const {createUserCompany}=require('../Controllers/UserController');
+const { getUsers } = require('../Controllers/UserController')
+const { getUserCompany } = require('../Controllers/UserController')
+const accessControl = require('../midill/accescontrol');
+
+
+// Middleware for restricting access to certain routes
+const isAdmin = accessControl(['admin']);
+const isCompany = accessControl(['company']);
+const isJobSeeker = accessControl(['job_seeker']);
+
 
 router.use(
   cors({
@@ -27,10 +28,20 @@ router.use(
     origin: 'http://localhost:5173'
   })
 )
-////////
+////
+router.post('/registeruser',registerUser)
 
+router.post('/registerjobseeker',  registerUserjobseeker)
+router.post('/registercompany',  createUserCompany)
 router.get('/', getUsers);
 router.get('/company', getUserCompany);
+router.post('/registerCompany', registerUserCompany)
+router.post('/login', loginLimiter, speedLimiter, loginUser)
+router.post('/refresh-token', refreshAccessToken)
+router.post('/forgot-password', forgotPassword)
+router.post('/reset-password', resetPassword)
+
+
 
 router.delete("/delete/:id", async function (req, res) {
   try {
@@ -44,35 +55,8 @@ router.delete("/delete/:id", async function (req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-/* GET users listing. 
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});*/
-
-  
-
-// Middleware for restricting access to certain routes
-const isAdmin = accessControl(['admin']);
-const isCompany = accessControl(['company']);
-const isJobSeeker = accessControl(['job_seeker']);
-
-router.post('/registeruser',registerUser)
-router.post('/registerjobseeker',  registerUserjobseeker)
 
 
-
-router.post('/registerCompany', registerUserCompany)
-router.post('/login', loginLimiter, speedLimiter, loginUser)
-router.post('/refresh-token', refreshAccessToken)
-
-
-
-
-// Add the new routes
-router.post('/forgot-password', forgotPassword)
-router.post('/reset-password', resetPassword)
-
-// Logout endpoint
 router.post('/logout', (req, res) => {
   try {
     // Clear the refresh token cookie
@@ -105,10 +89,6 @@ router.get("/search/company/:name", async function (req, res) {
   }
 });
 
-/*
-
-
-=======
 router.get('/dashboard', isAdmin, (req, res) => {
     // This route can only be accessed by admin
   });
