@@ -21,8 +21,6 @@ const passport = require('passport');
 const cors = require ('cors');
 const { test, registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
 
-const { registerUser}=require('../Controllers/UserController');
-const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
 router.use(
   cors({
     credentials: true,
