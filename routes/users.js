@@ -1,12 +1,19 @@
 var express = require('express');
 var router = express.Router();
 
+const User = require("../models/user");
 
 const { registerUser}=require('../Controllers/UserController');
 const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
-
+const {createUserCompany}=require('../Controllers/UserController');
+/// for the dashboard
 router.post('/registeruser',registerUser)
 router.post('/registerjobseeker',  registerUserjobseeker)
+router.post('/registercompany',  createUserCompany)
+const { getUsers } = require('../Controllers/UserController')
+const { getUserCompany } = require('../Controllers/UserController')
+
+
 
 const crypto = require('crypto');
 const passport = require('passport');
@@ -19,7 +26,23 @@ router.use(
     origin: 'http://localhost:5173'
   })
 )
-router.get('/', test);
+////////
+
+router.get('/', getUsers);
+router.get('/company', getUserCompany);
+
+router.delete("/delete/:id", async function (req, res) {
+  try {
+    const deleted = await User.findOneAndDelete({ _id: req.params.id });
+    if (!deleted) {
+      return res.status(404).json({ error: 'user not found' });
+    }
+    res.status(200).json({ message: 'user deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 /* GET users listing. 
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
@@ -27,6 +50,9 @@ router.get('/', function(req, res, next) {
 router.post('/registerCompany', registerUserCompany)
 router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
+
+
+
 
 // Add the new routes
 router.post('/forgot-password', forgotPassword)
@@ -52,7 +78,22 @@ router.post('/logout', (req, res) => {
     console.error('Logout Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-});/*
+});
+
+router.get("/search/company/:name", async function (req, res) {
+  try {
+    const name = req.params.name;
+    const usercompany = await User.find({ name });
+    res.json(usercompany);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+/*
+
+
 //Instagram authentication route
 router.get('/auth/instagram', passport.authenticate('instagram'));
 router.get('/auth/instagram/callback',

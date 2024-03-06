@@ -43,6 +43,7 @@ router.delete("/delete/:id", async function (req, res) {
     }
   });
 
+  
 
   // Search based on the date of the application
 router.get("/search/date/:date", async function (req, res) {
