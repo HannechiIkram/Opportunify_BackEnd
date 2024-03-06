@@ -14,12 +14,15 @@ const { getUsers } = require('../Controllers/UserController')
 const { getUserCompany } = require('../Controllers/UserController')
 
 
+const accessControl = require('../midill/accescontrol');
 
 const crypto = require('crypto');
 const passport = require('passport');
 const cors = require ('cors');
 const { test, registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
 
+const { registerUser}=require('../Controllers/UserController');
+const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
 router.use(
   cors({
     credentials: true,
@@ -47,6 +50,19 @@ router.delete("/delete/:id", async function (req, res) {
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
 });*/
+
+  
+
+// Middleware for restricting access to certain routes
+const isAdmin = accessControl(['admin']);
+const isCompany = accessControl(['company']);
+const isJobSeeker = accessControl(['job_seeker']);
+
+router.post('/registeruser',registerUser)
+router.post('/registerjobseeker',  registerUserjobseeker)
+
+
+
 router.post('/registerCompany', registerUserCompany)
 router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
@@ -94,6 +110,25 @@ router.get("/search/company/:name", async function (req, res) {
 /*
 
 
+=======
+router.get('/dashboard', isAdmin, (req, res) => {
+    // This route can only be accessed by admin
+  });
+  router.get('/job_offers', isJobSeeker, (req, res) => {
+    // This route can only be accessed by admin
+  });
+  router.get('/job_application', isJobSeeker, (req, res) => {
+    // This route can only be accessed by admin
+  });
+  
+  /*
+  router.get('/applications', isCompany, (req, res) => {
+    // This route can only be accessed by company users
+  });*:
+  
+
+/*
+>>>>>>> prefinal_auth
 //Instagram authentication route
 router.get('/auth/instagram', passport.authenticate('instagram'));
 router.get('/auth/instagram/callback',
