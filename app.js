@@ -30,8 +30,13 @@ mongoose.connect(
 .catch((err) => {
   console.log(err);
 });
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST','PUT','DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true 
+}));
 
-app.use(cors());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(cookieParser());
@@ -41,12 +46,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors({
-  origin: 'http://localhost:5173/',
-  methods: ['GET', 'POST','PUT','DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true 
-}));
+
+
 app.use('/', indexRouter);
 app.use('/applications', applicationRouter);
 app.use('/user',userRouter);
