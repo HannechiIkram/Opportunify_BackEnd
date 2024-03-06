@@ -1,17 +1,26 @@
 var express = require('express');
 var router = express.Router();
 
-
-const { registerUser}=require('../Controllers/UserController');
-const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
-
-router.post('/registeruser',registerUser)
-router.post('/registerjobseeker',  registerUserjobseeker)
+const User = require("../models/user");
 
 const crypto = require('crypto');
 const passport = require('passport');
 const cors = require ('cors');
 const { test, registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
+
+const { registerUser}=require('../Controllers/UserController');
+const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
+const {createUserCompany}=require('../Controllers/UserController');
+const { getUsers } = require('../Controllers/UserController')
+const { getUserCompany } = require('../Controllers/UserController')
+const accessControl = require('../midill/accescontrol');
+
+
+// Middleware for restricting access to certain routes
+const isAdmin = accessControl(['admin']);
+const isCompany = accessControl(['company']);
+const isJobSeeker = accessControl(['job_seeker']);
+
 
 router.use(
   cors({
@@ -19,20 +28,35 @@ router.use(
     origin: 'http://localhost:5173'
   })
 )
-router.get('/', test);
-/* GET users listing. 
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});*/
+////
+router.post('/registeruser',registerUser)
+
+router.post('/registerjobseeker',  registerUserjobseeker)
+router.post('/registercompany',  createUserCompany)
+router.get('/', getUsers);
+router.get('/company', getUserCompany);
 router.post('/registerCompany', registerUserCompany)
 router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
-
-// Add the new routes
 router.post('/forgot-password', forgotPassword)
 router.post('/reset-password', resetPassword)
 
-// Logout endpoint
+
+
+router.delete("/delete/:id", async function (req, res) {
+  try {
+    const deleted = await User.findOneAndDelete({ _id: req.params.id });
+    if (!deleted) {
+      return res.status(404).json({ error: 'user not found' });
+    }
+    res.status(200).json({ message: 'user deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 router.post('/logout', (req, res) => {
   try {
     // Clear the refresh token cookie
@@ -52,7 +76,37 @@ router.post('/logout', (req, res) => {
     console.error('Logout Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-});/*
+});
+
+router.get("/search/company/:name", async function (req, res) {
+  try {
+    const name = req.params.name;
+    const usercompany = await User.find({ name });
+    res.json(usercompany);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/dashboard', isAdmin, (req, res) => {
+    // This route can only be accessed by admin
+  });
+  router.get('/job_offers', isJobSeeker, (req, res) => {
+    // This route can only be accessed by admin
+  });
+  router.get('/job_application', isJobSeeker, (req, res) => {
+    // This route can only be accessed by admin
+  });
+  
+  /*
+  router.get('/applications', isCompany, (req, res) => {
+    // This route can only be accessed by company users
+  });*:
+  
+
+/*
+>>>>>>> prefinal_auth
 //Instagram authentication route
 router.get('/auth/instagram', passport.authenticate('instagram'));
 router.get('/auth/instagram/callback',

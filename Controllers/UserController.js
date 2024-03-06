@@ -5,7 +5,7 @@ const UserCompanyModel = require('../models/user-company');
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');  // Import nodemailer here
+const nodemailer = require('nodemailer');  
 const rateLimit = require('express-rate-limit');
 const slowDown = require('express-slow-down');
 const passport = require('passport');
@@ -18,10 +18,10 @@ const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 //ajouter un user quelconque( pour l'admin peut etre)
 const registerUser = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { name,email, password, role } = req.body;
 
     // Validate input
-    if (!email || !password || !role) {
+    if (!email || !password || !role||!name) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -36,6 +36,7 @@ const registerUser = async (req, res) => {
 
     // Create new user
     const newUser = await UserModel.create({
+      name,
       email,
       password: hashedPassword,
       role,
@@ -349,6 +350,74 @@ passport.use(new LinkedInStrategy({
   return done(null, profile);
 }));
 */
+
+/*
+async function getUsers(req, res) {
+  try {
+    const users = await UserModel.find();
+    res.send(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving users');
+  }
+}
+*/
+
+const getUsers = async (req, res) => {
+  try {
+    const users = await UserModel.find();
+    res.send(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving users');
+  }
+
+
+ 
+  
+};
+
+const getUserCompany = async (req, res) => {
+  try {
+    const users = await UserCompanyModel.find();
+    res.send(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving users');
+  }
+};
+
+///register company
+
+const createUserCompany = async (req, res) => {
+  try {
+    const { name, email, password, address, phoneNumber, domainOfActivity } = req.body;
+
+    // Vérification de la présence des champs obligatoires
+    if (!name || !email || !password || !phoneNumber) {
+      return res.status(400).json({ error: 'Name, email, password, and phone number are required' });
+    }
+
+    // Création d'un nouveau modèle d'utilisateur de type "company"
+    const newUserCompany = await UserCompanyModel.create({
+      name,
+      email,
+      password,
+      address,
+      phoneNumber,
+      domainOfActivity,
+    });
+
+    // Retourner la réponse avec le nouvel utilisateur créé
+    return res.status(201).json({ newUserCompany });
+  } catch (error) {
+    console.error('Error creating user company:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
 module.exports = {
   test,
   registerUserCompany,
@@ -358,6 +427,10 @@ module.exports = {
   resetPassword,
   loginLimiter,
   speedLimiter,
-  registerUser
+  registerUser,
+  getUsers,
+  getUserCompany,
+  createUserCompany
+  
 
 };

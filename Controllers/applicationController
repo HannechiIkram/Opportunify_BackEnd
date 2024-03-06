@@ -1,0 +1,39 @@
+// applicationController.js
+
+const express = require("express");
+
+const Application = require("../models/application"); // Corrected import statement
+
+// la recherche de tous les applications
+async function getall(req, res) {
+  try {
+    const data = await Application.find(); // Corrected usage of Application model
+    res.send(data);
+  } catch (err) {
+    res.send(err);
+  }
+}
+
+/*// la recherche par id
+async function getbyid(req, res) {
+  try {
+    const data = await Application.findById(req.params.id); // Corrected usage of Application model
+    res.send(data);
+  } catch (err) {
+    res.send(err);
+  }
+}*/
+
+// l'ajout d'une application
+async function add(req, res, next) {
+  try {
+    const newApplication = new Application(req.body); 
+    await newApplication.save();
+    res.status(200).send({ message: 'Application added successfully' });
+  } catch (err) {
+    console.error(err); 
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+}
+
+module.exports = { getall, add };

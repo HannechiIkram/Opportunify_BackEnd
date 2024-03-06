@@ -23,7 +23,6 @@ const userSchema = new Schema({
   domainOfActivity: String,
   resetToken: String,
   resetTokenExpires: Date,
-  
 
 })
 

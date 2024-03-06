@@ -74,6 +74,7 @@ if (existingUser) {
     //ajouter el user if role mteou job_seeker f table mtaa jobseeker
    
 const newUser = await UserModel.create({
+  
   email,
   password: hashedPassword,
   role: 'job_seeker',
