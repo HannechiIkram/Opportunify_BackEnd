@@ -61,7 +61,7 @@ app.use(cors({
 }));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/user', usersRouter);
 
 
 //les middleware eli teb3in jsonwebtoken
