@@ -19,10 +19,11 @@ var app = express();
 // Connexion à la base de données MongoDB avec Mongoose
 mongoose.connect(
   mongoconnection.url, 
-  {
+  ///no need for these
+  /*{
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  }
+  }*/
 )
 .then(() => {
   console.log("Connected to DB");

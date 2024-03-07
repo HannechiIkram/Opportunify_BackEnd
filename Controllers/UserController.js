@@ -154,13 +154,13 @@ const loginLimiter = rateLimit({
   max: 5, // Max 5 requests per windowMs
   message: 'Too many login attempts, please try again later.',
 });
-
-// Set up slowing down for login attempts
+///// new version
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
   delayAfter: 3, // After 3 requests within windowMs, delay subsequent requests
-  delayMs: 1000, // 1 second delay
+  delayMs: () => 1000 // 1 second delay for all requests
 });
+
 
 ///// login with Protection Against Brute Force Attacks
 
