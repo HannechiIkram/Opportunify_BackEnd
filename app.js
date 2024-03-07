@@ -51,6 +51,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use('/', indexRouter);
+
+
+//les middleware eli teb3in jsonwebtoken
 app.use('/applications', applicationRouter);
 app.use('/user',userRouter);
 app.use(cookieParser());

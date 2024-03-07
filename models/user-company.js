@@ -24,8 +24,6 @@ const userSchema = new Schema({
   resetToken: String,
   resetTokenExpires: Date,
 
-
-
 })
 
 
