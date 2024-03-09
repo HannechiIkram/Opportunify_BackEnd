@@ -6,11 +6,11 @@ const User = require("../models/user");
 const crypto = require('crypto');
 const passport = require('passport');
 const cors = require ('cors');
-const { test, registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
+const { registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
 
 const { registerUser}=require('../Controllers/UserController');
 const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
-const {createUserCompany}=require('../Controllers/UserController');
+//const {createUserCompany}=require('../Controllers/UserController');
 const { getUsers } = require('../Controllers/UserController')
 const { getUserCompany } = require('../Controllers/UserController')
 const accessControl = require('../midill/accescontrol');
@@ -32,7 +32,8 @@ router.use(
 router.post('/registeruser',registerUser)
 
 router.post('/registerjobseeker',  registerUserjobseeker)
-router.post('/registercompany',  createUserCompany)
+
+//router.post('/registercompany',  createUserCompany)
 router.get('/', getUsers);
 router.get('/company', getUserCompany);
 router.post('/registerCompany', registerUserCompany)

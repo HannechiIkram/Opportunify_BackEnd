@@ -1,5 +1,5 @@
 
-const UserModel = require('../models/user'); 
+const UserModel = require('../models/user');
 const UserCompanyModel = require('../models/user-company');
 
 const { comparePassword, hashPassword } = require('../helpers/auth');
@@ -56,10 +56,7 @@ const registerUser = async (req, res) => {
 
 // Import the transporter configuration (make sure the path is correct)
 const transporter = require('../nodemailer-config');
-// Test endpoint
-const test = (req, res) => {
-  res.json('test is working');
-};const registerUserCompany = async (req, res) => {
+;const registerUserCompany = async (req, res) => {
   try {
     const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity } = req.body;
 
@@ -99,40 +96,45 @@ const test = (req, res) => {
 if (!/^[a-zA-Z\s\n]+$/.test(description)) {
   return res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
 }
-
-    // Création d'un nouveau modèle d'utilisateur avec les nouveaux champs
-    const hashedPassword = await hashPassword(password);
-    const newCompanyUser = await UserCompanyModel.create({
-      name,
-      email,
-      password: hashedPassword,
-      matriculeFiscale,
-      description,
-      socialMedia,
-      address,
-      phoneNumber,
-      domainOfActivity
-    });
-    const newUser = await UserModel.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: 'company',
-      matriculeFiscale,
-      description,
-      socialMedia,
-      address,
-      phoneNumber,
-      domainOfActivity});
-    // Retourner la réponse avec le nouvel utilisateur créé
-    return res.status(201).json(({msg:"user added successfully",newUser,newCompanyUser}));
-  } catch (error) {
-    // Gestion des erreurs
-    console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+// Check if user already existstry {
+  const existingUser = await UserModel.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ error: 'Email is already taken' });
   }
-};
 
+  const hashedPassword = await hashPassword(password);
+
+  const newCompanyUser = await UserCompanyModel.create({
+    name,
+    email,
+    password: hashedPassword,
+    matriculeFiscale,
+    description,
+    socialMedia,
+    address,
+    phoneNumber,
+    domainOfActivity
+  });
+
+  const newUser = await UserModel.create({
+    name,
+    email,
+    password: hashedPassword,
+    role: 'company',
+    matriculeFiscale,
+    description,
+    socialMedia,
+    address,
+    phoneNumber,
+    domainOfActivity
+  });
+
+  return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });
+} catch (error) {
+  console.error(error);
+  return res.status(500).json({ error: 'Internal Server Error' });
+}
+}
 // Function to validate social media links
 const validateSocialMediaLinks = (socialMedia) => {
   for (const key in socialMedia) {
@@ -388,7 +390,7 @@ const getUserCompany = async (req, res) => {
 };
 
 ///register company
-
+/*
 const createUserCompany = async (req, res) => {
   try {
     const { name, email, password, address, phoneNumber, domainOfActivity } = req.body;
@@ -416,10 +418,10 @@ const createUserCompany = async (req, res) => {
   }
 };
 
-
+*/
 
 module.exports = {
-  test,
+
   registerUserCompany,
   loginUser,
   refreshAccessToken,
@@ -429,8 +431,8 @@ module.exports = {
   speedLimiter,
   registerUser,
   getUsers,
-  getUserCompany,
-  createUserCompany
+  getUserCompany
+ 
   
 
 };
