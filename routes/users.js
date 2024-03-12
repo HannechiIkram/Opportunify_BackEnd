@@ -93,13 +93,12 @@ router.get("/search/company/:name", async function (req, res) {
 router.get('/dashboard', isAdmin, (req, res) => {
     // This route can only be accessed by admin
   });
-  router.get('/job_offers', isJobSeeker, (req, res) => {
-    // This route can only be accessed by admin
+  router.get('/Job_offer', isCompany, (req, res) => {
   });
   router.get('/job_application', isJobSeeker, (req, res) => {
-    // This route can only be accessed by admin
   });
-  
+  /*router.get('/job_offers', isJobSeeker, (req, res) => {
+  });*/
   /*
   router.get('/applications', isCompany, (req, res) => {
     // This route can only be accessed by company users
@@ -107,7 +106,7 @@ router.get('/dashboard', isAdmin, (req, res) => {
   
 
 /*
->>>>>>> prefinal_auth
+
 //Instagram authentication route
 router.get('/auth/instagram', passport.authenticate('instagram'));
 router.get('/auth/instagram/callback',
