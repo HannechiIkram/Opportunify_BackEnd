@@ -51,7 +51,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use('/', indexRouter);
-
+const jobOfferRouter = require("./routes/job_offer");
+app.use("/job_offer", jobOfferRouter);
 
 //les middleware eli teb3in jsonwebtoken
 app.use('/applications', applicationRouter);
