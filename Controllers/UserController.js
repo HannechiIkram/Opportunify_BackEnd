@@ -265,7 +265,7 @@ const refreshAccessToken = (req, res) => {
     const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: 'samar.rebhi@esprit.tn',
+      from: 'ikram.hannechi@esprit.tn',
       to: email,
       subject: 'Réinitialisation de mot de passe',
       text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,
@@ -311,7 +311,21 @@ const resetPassword = async (req, res) => {
     console.error('Reset Password Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-};/*
+};
+
+// Configure Facebook Strategy
+passport.use(new FacebookStrategy({
+  clientID: '443118344822988',
+  clientSecret: '9c74042f8ac329b9b7234ed887abe66c',
+  callbackURL: 'http://localhost:5173/auth/facebook/callback' // Adjust the callback URL as needed
+}, (accessToken, refreshToken, profile, done) => {
+  // Handle user data returned by Facebook and save it in your database
+  return done(null, profile);
+}));
+
+
+
+/*
 // Configure Instagram Strategy
 passport.use(new InstagramStrategy({
   clientID: 'YOUR_INSTAGRAM_CLIENT_ID',

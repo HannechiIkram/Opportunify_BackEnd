@@ -58,6 +58,14 @@ router.delete("/delete/:id", async function (req, res) {
 });
 
 
+// Route for initiating Facebook authentication
+router.get('/auth/facebook', passport.authenticate('facebook'));
+// Route for handling Facebook authentication callback
+router.get('/auth/facebook/callback', passport.authenticate('facebook', {
+  successRedirect: '/', // Redirect to home page after successful authentication
+  failureRedirect: '/login', // Redirect to login page if authentication fails
+}));
+
 router.post('/logout', (req, res) => {
   try {
     // Clear the refresh token cookie
