@@ -145,11 +145,11 @@ const validateSocialMediaLinks = (socialMedia) => {
       return { error: `${key} should be a valid URL` };
     }
   }
-
+///
   return { valid: true };
 };
 
-
+///
 // Set up rate limiting for login attempts
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
