@@ -1,17 +1,17 @@
-var createError = require('http-errors');
-var express = require('express');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const logger = require('morgan');
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose"); // Importez Mongoose ici
 const mongoconnection = require("./database/mongodb.json");
 const cors = require('cors');
-var path = require('path');
-var cookieParser = require('cookie-parser');
+const path = require('path');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
-var indexRouter = require('./routes/index');
-var applicationRouter = require('./routes/application');
-var userRouter = require('./routes/users');
-var app = express();
+const indexRouter = require('./routes/index');
+const applicationRouter = require('./routes/application');
+const userRouter = require('./routes/users');
+const app = express();
 
 // Connexion à la base de données MongoDB avec Mongoose
 mongoose.connect(
@@ -28,7 +28,13 @@ mongoose.connect(
   console.log(err);
 });
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST','PUT','DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true 
+}));
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(cookieParser());
@@ -38,12 +44,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors({
-  origin: 'http://localhost:5174',
-  methods: ['GET', 'POST','PUT','DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true 
-}));
+
 app.use('/', indexRouter);
 app.use('/applications', applicationRouter);
 app.use('/user',userRouter);
