@@ -2,12 +2,11 @@ const mongoose = require ('mongoose');
 const {Schema} = mongoose
 ///ikram
 //ikram
-const userSchema = new Schema({
+const userCompanySchema = new Schema({
   name: String,
   email: {
     type: String,
     unique: true  
-
   }, 
   password: String,
   matriculeFiscale: String,
@@ -16,7 +15,6 @@ const userSchema = new Schema({
     facebook: String,
     twitter: String,
     linkedin: String,
-    // ... add other social media fields as needed
   },
   address: String,
   phoneNumber: String,
@@ -24,10 +22,7 @@ const userSchema = new Schema({
   resetToken: String,
   resetTokenExpires: Date,
 
-
-
 })
 
 
-const UserCompanyModel = mongoose.model('User-company', userSchema)
-module.exports = UserCompanyModel;
+module.exports =mongoose.model('Usercompany', userCompanySchema) ;

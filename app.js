@@ -1,6 +1,10 @@
+
 const createError = require('http-errors');
 const express = require('express');
 const logger = require('morgan');
+const accessControl = require('../Opportunify_BackEnd/midill/accescontrol');
+
+
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose"); // Importez Mongoose ici
 const mongoconnection = require("./database/mongodb.json");
@@ -13,13 +17,15 @@ const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
 const app = express();
 
+
 // Connexion à la base de données MongoDB avec Mongoose
 mongoose.connect(
   mongoconnection.url, 
-  {
+  ///no need for these
+  /*{
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  }
+  }*/
 )
 .then(() => {
   console.log("Connected to DB");
@@ -27,6 +33,13 @@ mongoose.connect(
 .catch((err) => {
   console.log(err);
 });
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST','PUT','DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true 
+}));
+
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -34,6 +47,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true 
 }));
+
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -46,6 +60,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+const jobOfferRouter = require("./routes/job_offer");
+app.use("/job_offer", jobOfferRouter);
+
+//les middleware eli teb3in jsonwebtoken
 app.use('/applications', applicationRouter);
 app.use('/user',userRouter);
 app.use(cookieParser());
@@ -64,3 +82,4 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+

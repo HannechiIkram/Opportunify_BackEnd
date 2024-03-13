@@ -1,5 +1,5 @@
 
-const UserModel = require('../models/user'); 
+const UserModel = require('../models/user');
 const UserCompanyModel = require('../models/user-company');
 
 const { comparePassword, hashPassword } = require('../helpers/auth');
@@ -56,10 +56,7 @@ const registerUser = async (req, res) => {
 
 // Import the transporter configuration (make sure the path is correct)
 const transporter = require('../nodemailer-config');
-// Test endpoint
-const test = (req, res) => {
-  res.json('test is working');
-};const registerUserCompany = async (req, res) => {
+;const registerUserCompany = async (req, res) => {
   try {
     const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity } = req.body;
 
@@ -99,40 +96,45 @@ const test = (req, res) => {
 if (!/^[a-zA-Z\s\n]+$/.test(description)) {
   return res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
 }
-
-    // Création d'un nouveau modèle d'utilisateur avec les nouveaux champs
-    const hashedPassword = await hashPassword(password);
-    const newCompanyUser = await UserCompanyModel.create({
-      name,
-      email,
-      password: hashedPassword,
-      matriculeFiscale,
-      description,
-      socialMedia,
-      address,
-      phoneNumber,
-      domainOfActivity
-    });
-    const newUser = await UserModel.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: 'company',
-      matriculeFiscale,
-      description,
-      socialMedia,
-      address,
-      phoneNumber,
-      domainOfActivity});
-    // Retourner la réponse avec le nouvel utilisateur créé
-    return res.status(201).json(({msg:"user added successfully",newUser,newCompanyUser}));
-  } catch (error) {
-    // Gestion des erreurs
-    console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+// Check if user already existstry {
+  const existingUser = await UserModel.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ error: 'Email is already taken' });
   }
-};
 
+  const hashedPassword = await hashPassword(password);
+
+  const newCompanyUser = await UserCompanyModel.create({
+    name,
+    email,
+    password: hashedPassword,
+    matriculeFiscale,
+    description,
+    socialMedia,
+    address,
+    phoneNumber,
+    domainOfActivity
+  });
+
+  const newUser = await UserModel.create({
+    name,
+    email,
+    password: hashedPassword,
+    role: 'company',
+    matriculeFiscale,
+    description,
+    socialMedia,
+    address,
+    phoneNumber,
+    domainOfActivity
+  });
+
+  return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });
+} catch (error) {
+  console.error(error);
+  return res.status(500).json({ error: 'Internal Server Error' });
+}
+}
 // Function to validate social media links
 const validateSocialMediaLinks = (socialMedia) => {
   for (const key in socialMedia) {
@@ -143,24 +145,24 @@ const validateSocialMediaLinks = (socialMedia) => {
       return { error: `${key} should be a valid URL` };
     }
   }
-
+///
   return { valid: true };
 };
 
-
+///
 // Set up rate limiting for login attempts
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Max 5 requests per windowMs
   message: 'Too many login attempts, please try again later.',
 });
-
-// Set up slowing down for login attempts
+///// new version
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
   delayAfter: 3, // After 3 requests within windowMs, delay subsequent requests
-  delayMs: 1000, // 1 second delay
+  delayMs: () => 1000 // 1 second delay for all requests
 });
+
 
 ///// login with Protection Against Brute Force Attacks
 
@@ -193,7 +195,7 @@ const loginUser = async (req, res) => {
 
     // Generate refresh token
     const refreshToken = jwt.sign(
-      { email: user.email, id: user._id },
+      { email: user.email, id: user._id,role:user.role },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: '7d' } // Adjust the expiration time as needed
     );
@@ -263,7 +265,7 @@ const refreshAccessToken = (req, res) => {
     const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: 'samar.rebhi@esprit.tn',
+      from: 'ikram.hannechi@esprit.tn',
       to: email,
       subject: 'Réinitialisation de mot de passe',
       text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,
@@ -309,7 +311,21 @@ const resetPassword = async (req, res) => {
     console.error('Reset Password Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-};/*
+};
+
+// Configure Facebook Strategy
+passport.use(new FacebookStrategy({
+  clientID: '443118344822988',
+  clientSecret: '9c74042f8ac329b9b7234ed887abe66c',
+  callbackURL: 'http://localhost:5173/auth/facebook/callback' // Adjust the callback URL as needed
+}, (accessToken, refreshToken, profile, done) => {
+  // Handle user data returned by Facebook and save it in your database
+  return done(null, profile);
+}));
+
+
+
+/*
 // Configure Instagram Strategy
 passport.use(new InstagramStrategy({
   clientID: 'YOUR_INSTAGRAM_CLIENT_ID',
@@ -387,7 +403,8 @@ const getUserCompany = async (req, res) => {
   }
 };
 
-
+///register company
+/*
 const createUserCompany = async (req, res) => {
   try {
     const { name, email, password, address, phoneNumber, domainOfActivity } = req.body;
@@ -415,10 +432,10 @@ const createUserCompany = async (req, res) => {
   }
 };
 
-
+*/
 
 module.exports = {
-  test,
+
   registerUserCompany,
   loginUser,
   refreshAccessToken,
@@ -428,8 +445,8 @@ module.exports = {
   speedLimiter,
   registerUser,
   getUsers,
-  getUserCompany,
-  createUserCompany
+  getUserCompany
+ 
   
 
 };

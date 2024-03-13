@@ -4,6 +4,7 @@ const { comparePassword, hashPassword } = require('../helpers/auth');
 // Sign up endpoint (register du job seeker)
 const registerUserjobseeker = async (req,res) => {
   try {
+    ///////////////
     const { name,lastname,birthdate, email,phone,address, password,role_jobseeker,confirmPassword } = req.body;
 
 // required sur tous les champs ils doivent etre remplis
