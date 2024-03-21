@@ -10,10 +10,12 @@ const job_offer = new Schema({
   responsibilities:String,
   lieu:String,
   langue:String,
-  status:String,
+  workplace_type:String,
   field:String,
   salary_informations:String,
- deadline:String
+ deadline:String,
+ createdAt: { type: Date, default: Date.now } // Champ pour la date de création, avec la valeur par défaut de la date actuelle
+
 
 
    // company: { type: mongo.Schema.Types.ObjectId, ref: 'Company' }, // Reference to the 'Company' model
