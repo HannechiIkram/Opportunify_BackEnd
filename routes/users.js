@@ -70,23 +70,17 @@ router.post('/logout', (req, res) => {
   try {
     // Clear the refresh token cookie
     res.clearCookie('refreshToken', { httpOnly: true, secure: true });
-
     
-      // Clear access token cookie
-      res.clearCookie('accessToken', { httpOnly: true, secure: true });
+    // Clear access token cookie
+    res.clearCookie('accessToken', { httpOnly: true, secure: true });
     
-    
-      // Optionally, you can redirect to the home page or send a success message
-      res.status(200).json({ message: 'Logout successful' });
-    
-    // Redirect the user to the home page
-    res.redirect('/register');
+    // Send a JSON response indicating successful logout
+    res.status(200).json({ message: 'Logout successful' });
   } catch (error) {
     console.error('Logout Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 router.get("/search/company/:name", async function (req, res) {
   try {
     const name = req.params.name;

@@ -68,7 +68,6 @@ app.use('/applications', applicationRouter);
 app.use('/user',userRouter);
 app.use(cookieParser());
 app.use(express.urlencoded({extended:false}));
-
 app.use(function(req, res, next) {
   next(createError(404));
 });
