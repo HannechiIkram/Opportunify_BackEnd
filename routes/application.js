@@ -120,22 +120,22 @@ router.get("/search/date/:date", async function (req, res) {
       await newApplication.save();
 
       // Send email notification
-      const mailOptions = {
+  /*    const mailOptions = {
           from: 'opportunify@outlook.com',
           to: req.body.email,
           subject: 'Application Submitted Successfully',
           text: 'Your application has been submitted successfully. We will review it shortly.'
-      };
+      };*/
 
-      transporter.sendMail(mailOptions, (error, info) => {
+     /* transporter.sendMail(mailOptions, (error, info) => {
           if (error) {
               console.error('Error sending email notification:', error);
           } else {
               console.log('Email notification sent:', info.response);
           }
-      });
+      });*/
 
-      res.status(201).json({ message: 'Application submitted successfully' });
+     // res.status(201).json({ message: 'Application submitted successfully' });
   } catch (error) {
       console.error('Error submitting application:', error);
       res.status(500).json({ error: 'Internal Server Error' });
