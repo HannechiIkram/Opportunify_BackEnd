@@ -189,32 +189,4 @@ router.get('/:id', applicationController.getById);
 router.use(bodyParser.json());
 
 
-// Create Twilio client
-const client = twilio(accountSid, authToken);router.post('/send-sms', async (req, res) => {
-  const { to, body } = req.body;
-
-  try {
-    // Check if the 'body' parameter is provided in the request body
-    if (!body) {
-      return res.status(400).json({ error: 'Message body is required' });
-    }
-
-    // Send SMS using Twilio
-    const message = await client.messages.create({
-      body: body,
-      from: '+21620037070', // Your Twilio phone number
-      to: to // Dynamic recipient's phone number from request body
-    });
-
-    // Return success response
-    res.status(200).json({ message: 'SMS sent successfully', messageId: message.sid });
-  } catch (error) {
-    // Handle errors
-    console.error('Error sending SMS:', error);
-    res.status(500).json({ error: 'Failed to send SMS' });
-  }
-});
-
-
-
 module.exports = router;
