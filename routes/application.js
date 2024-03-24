@@ -188,9 +188,6 @@ router.get('/:id', applicationController.getById);
 // Middleware to parse JSON requests
 router.use(bodyParser.json());
 
-// Twilio API credentials
-const accountSid = 'AC4d91296a7471a502d21cae7b64bd7c92';
-const authToken = 'a6a5ed2957217cdcd4361cabeb760c5e';
 
 // Create Twilio client
 const client = twilio(accountSid, authToken);router.post('/send-sms', async (req, res) => {
