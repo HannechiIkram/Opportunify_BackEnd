@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-
+const multer = require('multer');
 const User = require("../models/user");
 
 const crypto = require('crypto');
@@ -148,7 +148,40 @@ router.get('/auth/linkedin/callback',
     res.redirect('/');
   }
 );*/
+// Configure multer for handling file uploads
+// Configure multer for handling file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Define where to store uploaded files
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname); // Define file name
+  }
+});
 
+const upload = multer({ storage: storage }); // Keep this declaration for handling file uploads
+
+// Handle image upload
+router.post('/upload', upload.single('image'), async (req, res) => {
+  const imageUrl = req.file.path; // Assuming the image is stored in a local directory
+  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
+
+  try {
+    // Find the user by ID and update the image attribute
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.image = imageUrl;
+    await user.save();
+
+    res.json({ imageUrl: imageUrl });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 module.exports = router;
  

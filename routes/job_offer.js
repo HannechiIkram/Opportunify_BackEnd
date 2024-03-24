@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../Controllers/job-offerController");
-
+const authMiddleware = require ('../midill/authMiddleware');
 const job_offerModel = require("../models/job_offer");
 
 // [UPDATE]
@@ -48,7 +48,8 @@ router.delete("/delete/:id", async function (req, res) {
 router.get("/getall", userController.getall);
 
 router.get("/get/:id", userController.getbyid);
-router.post("/add", userController.add);
+//router.post("/add", userController.add);
+router.post('/add', authMiddleware, userController.add);
 
 
 

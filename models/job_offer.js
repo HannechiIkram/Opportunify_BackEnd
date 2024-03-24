@@ -3,7 +3,6 @@ const Schema = mongoose.Schema;
 
 
 const job_offer = new Schema({
-  jobofferid:Number,
   title: String,
   description: String,
   qualifications:String,
@@ -14,11 +13,11 @@ const job_offer = new Schema({
   field:String,
   salary_informations:String,
  deadline:String,
- createdAt: { type: Date, default: Date.now } // Champ pour la date de création, avec la valeur par défaut de la date actuelle
+ createdAt: { type: Date, default: Date.now } ,// Champ pour la date de création, avec la valeur par défaut de la date actuelle
+ company: { type: Schema.Types.ObjectId, ref: 'Usercompany', required: true }
 
 
 
-   // company: { type: mongo.Schema.Types.ObjectId, ref: 'Company' }, // Reference to the 'Company' model
 
   
 });

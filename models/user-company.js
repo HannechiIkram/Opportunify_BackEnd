@@ -21,6 +21,8 @@ const userCompanySchema = new Schema({
   domainOfActivity: String,
   resetToken: String,
   resetTokenExpires: Date,
+  image: String 
+
 
 })
 

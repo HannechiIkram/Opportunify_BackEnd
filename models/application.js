@@ -15,7 +15,9 @@ const applicationSchema = new Schema({
   phone: String,
   education: String,
   cv : String ,
-  coverLetter : String
+  coverLetter : String,
+  accepted: { type: Boolean, default: false },
+    rejected: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model("Application", applicationSchema);

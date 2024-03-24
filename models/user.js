@@ -13,7 +13,9 @@ const userSchema = new mongoose.Schema({
     select: false 
   },
   resetToken: String,
-  resetTokenExpires: Date
+  resetTokenExpires: Date,
+  image: String 
+
 
 });
 

@@ -7,8 +7,11 @@ const applicationController = require("../Controllers/applicationController");
 const validate = require("../midill/validate");
 const application = require("../models/application");
 const nodemailer = require('nodemailer');
-const bodyParser = require('body-parser');
+const twilio = require('twilio');
 
+
+
+const bodyParser = require("body-parser");
 // [READ] 
 router.get("/getall", applicationController.getall);
 
@@ -174,7 +177,46 @@ router.get('/get/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+// Ajouter les routes pour accepter et refuser une application
+router.put("/accept/:id", applicationController.acceptApplication);
+router.put("/reject/:id", applicationController.rejectApplication);
 
+
+
+router.get('/:id', applicationController.getById);
+
+// Middleware to parse JSON requests
+router.use(bodyParser.json());
+
+// Twilio API credentials
+const accountSid = 'AC4d91296a7471a502d21cae7b64bd7c92';
+const authToken = 'a6a5ed2957217cdcd4361cabeb760c5e';
+
+// Create Twilio client
+const client = twilio(accountSid, authToken);router.post('/send-sms', async (req, res) => {
+  const { to, body } = req.body;
+
+  try {
+    // Check if the 'body' parameter is provided in the request body
+    if (!body) {
+      return res.status(400).json({ error: 'Message body is required' });
+    }
+
+    // Send SMS using Twilio
+    const message = await client.messages.create({
+      body: body,
+      from: '+21620037070', // Your Twilio phone number
+      to: to // Dynamic recipient's phone number from request body
+    });
+
+    // Return success response
+    res.status(200).json({ message: 'SMS sent successfully', messageId: message.sid });
+  } catch (error) {
+    // Handle errors
+    console.error('Error sending SMS:', error);
+    res.status(500).json({ error: 'Failed to send SMS' });
+  }
+});
 
 
 

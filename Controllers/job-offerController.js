@@ -41,8 +41,11 @@ async function getbyid(req, res) {
 }
 */
 // l'ajout d'un utilisateur
+/*
 async function add(req, res) {
   try {
+    const userId = req.user._id; // ID de l'utilisateur connecté
+
     const newJobOffer = new job_offer(req.body);
     
     await newJobOffer.save();
@@ -54,5 +57,66 @@ async function add(req, res) {
 
     
   }
+}*/
+
+
+
+// Créer une nouvelle offre
+async function add(req, res) {
+  try {
+    const userId = req.user._id; // ID de l'utilisateur connecté
+
+    // Destructure the required fields from req.body
+    const {
+      title,
+      description,
+      qualifications,
+      responsibilities,
+      lieu,
+      langue,
+      workplace_type,
+      field,
+      salary_informations,
+      deadline
+    } = req.body;
+
+    // Validate if all required fields are present in req.body
+    if (!title || !description || !qualifications || !responsibilities || !lieu || !langue || !workplace_type || !field || !salary_informations || !deadline) {
+      // If any required field is missing, return a 400 Bad Request response
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const newJobOffer = new job_offer({
+      title,
+      description,
+      qualifications,
+      responsibilities,
+      lieu,
+      langue,
+      workplace_type,
+      field,
+      salary_informations,
+      deadline,
+      company: userId // Associé à l'utilisateur de l'entreprise connecté
+    });
+
+    await newJobOffer.save();
+    res.status(201).json(newJobOffer);
+  } catch (error) {
+    res.status(400).json({ error: error.toString() });
+  }
 }
+
+// Récupérer les offres d'un utilisateur de l'entreprise spécifique
+exports.getOffersByCompany = async (req, res, next) => {
+  try {
+    const userId = req.user._id; // ID de l'utilisateur connecté
+
+    const offers = await Offer.find({ company: userId });
+    res.status(200).json(offers);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = { getall, getbyid , add };

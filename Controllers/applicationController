@@ -35,5 +35,45 @@ async function add(req, res, next) {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 }
+async function getById(req, res) {
+  try {
+    const application = await Application.findById(req.params.id);
+    if (!application) {
+      return res.status(404).send({ error: 'Application not found' });
+    }
+    res.send(application);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Internal Server Error' });
+  }
+}
+async function acceptApplication(req, res) {
+  try {
+      const { id } = req.params;
+      const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: true, rejected: false }, { new: true });
+      if (!updatedApplication) {
+          return res.status(404).json({ error: 'Application not found' });
+      }
+      res.status(200).json(updatedApplication);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
 
-module.exports = { getall, add };
+// Mettre à jour une application pour la refuser
+async function rejectApplication(req, res) {
+  try {
+      const { id } = req.params;
+      const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true });
+      if (!updatedApplication) {
+          return res.status(404).json({ error: 'Application not found' });
+      }
+      res.status(200).json(updatedApplication);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+module.exports = { getall, add ,  getById , acceptApplication, rejectApplication };

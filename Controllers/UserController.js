@@ -58,7 +58,7 @@ const registerUser = async (req, res) => {
 const transporter = require('../nodemailer-config');
 ;const registerUserCompany = async (req, res) => {
   try {
-    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity } = req.body;
+    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity, image } = req.body;
 
     // Vérification de la présence des champs obligatoires
     if (!name || !email || !password || !phoneNumber) {
@@ -101,6 +101,8 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
   if (existingUser) {
     return res.status(400).json({ error: 'Email is already taken' });
   }
+  
+  const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
 
   const hashedPassword = await hashPassword(password);
 
@@ -113,7 +115,9 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
     socialMedia,
     address,
     phoneNumber,
-    domainOfActivity
+    domainOfActivity,
+    image: imageUrl // Add image URL to user data
+
   });
 
   const newUser = await UserModel.create({
@@ -126,7 +130,9 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
     socialMedia,
     address,
     phoneNumber,
-    domainOfActivity
+    domainOfActivity,
+    image: imageUrl // Add image URL to user data
+
   });
 
   return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });

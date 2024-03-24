@@ -13,6 +13,7 @@ const userJobSeekerSchema = new Schema({
   phone: Number,
   address: String,
   password: String,
+  image: String,
   role_jobseeker: { type: String, enum: ['student', 'alumni', 'staff'] }
 });
 

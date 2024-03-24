@@ -5,7 +5,7 @@ const { comparePassword, hashPassword } = require('../helpers/auth');
 const registerUserjobseeker = async (req,res) => {
   try {
     ///////////////
-    const { name,lastname,birthdate, email,phone,address, password,role_jobseeker,confirmPassword } = req.body;
+    const { name,lastname,birthdate, email,phone,address, password,role_jobseeker,confirmPassword, image } = req.body;
 
 // required sur tous les champs ils doivent etre remplis
     if (!name || !lastname||!birthdate||!email ||!phone||!address ||!password ||!role_jobseeker||!confirmPassword) {
@@ -68,6 +68,7 @@ if (existingUser) {
   return res.status(400).json({ error: 'Email is already taken' });
 }
 
+const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
 
 // crypter le mdp
     const hashedPassword = await hashPassword(password);
@@ -85,6 +86,8 @@ const newUser = await UserModel.create({
   phone,
   address,
   role_jobseeker,
+  image: imageUrl // Add image URL to user data
+
 });
 
 // Create the UserJobSeeker f table mtaa jobseeker
@@ -97,6 +100,8 @@ const newUserJobSeeker = await UserJobSeekerModel.create({
   phone,
   address,
   role_jobseeker,
+  image: imageUrl// Add image URL to user data
+
 });
 
     return res.status(201).json({msg:"user added successfully",newUser,newUserJobSeeker});
