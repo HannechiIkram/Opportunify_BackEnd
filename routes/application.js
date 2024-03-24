@@ -7,7 +7,6 @@ const applicationController = require("../Controllers/applicationController");
 const validate = require("../midill/validate");
 const application = require("../models/application");
 const nodemailer = require('nodemailer');
-const twilio = require('twilio');
 
 
 
