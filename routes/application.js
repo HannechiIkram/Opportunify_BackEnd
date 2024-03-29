@@ -9,6 +9,7 @@ const application = require("../models/application");
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 
+const authMiddleware = require ('../midill/authMiddleware');
 
 
 const bodyParser = require("body-parser");
@@ -98,7 +99,7 @@ router.get("/search/date/:date", async function (req, res) {
 
 
  // POST route to handle form submission for applying to a job offer
- router.post('/apply', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+ router.post('/apply', authMiddleware,upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
       const { userName, userSurname, email, phone, education } = req.body;
       const cv = req.files['cv'][0].path;

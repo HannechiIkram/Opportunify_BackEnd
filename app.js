@@ -19,6 +19,9 @@ const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
 const app = express();
 
+//const crypto = require('crypto');
+//const randomHexString = crypto.randomBytes(64).toString('hex');
+//console.log(randomHexString);
 
 // Connexion à la base de données MongoDB avec Mongoose
 mongoose.connect(

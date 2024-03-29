@@ -1,8 +1,7 @@
 
 const UserModel = require('../models/user');
-const UserCompanyModel = require('../models/user-company');
 const mongoose = require("mongoose"); // Importez Mongoose ici
-const User = require("../models/user");
+const UserCompanyModel = require('../models/user-company');
 
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
@@ -207,7 +206,7 @@ const loginUser = async (req, res) => {
     const accessToken = jwt.sign(
       { email: user.email, id: user._id, name: user.name },
       process.env.JWT_SECRET,
-      { expiresIn: '1m' } // Adjust the expiration time as needed
+      { expiresIn: '5m' } // Adjust the expiration time as needed
     );
 
     // Generate refresh token
@@ -218,14 +217,16 @@ const loginUser = async (req, res) => {
     );
 
     // Set both tokens as HTTP-only cookies
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: true, // other cookie options as needed
-    });
+  !//  res.cookie('accessToken', accessToken, {
+     // httpOnly: true,
+      //secure: true, // other cookie options as needed
+    //});
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('jwt', refreshToken, {
       httpOnly: true,
       secure: true, // other cookie options as needed
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000 
     });
 
     // Return the access token in the response
