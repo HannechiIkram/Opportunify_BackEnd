@@ -4,19 +4,35 @@ const { rolePermissions } = require('../helpers/permissions');
 
 const userSchema = new mongoose.Schema({
   name:String,
-  email: { type: String, required: true },
+  address: String,
+
+image: {
+  type: String, 
+ 
+}, 
+
+email: { type: String, required: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['job_seeker', 'company', 'admin'], required: true },
+  role: { type: String, enum: ['job_seeker', 'company', 'admin'], required: false },
   permissions: {
     type: Object,
     default: {},
     select: false 
   },
+
   resetToken: String,
   resetTokenExpires: Date,
-  image: String 
+  phone: Number,
+  description: String,
 
-
+  lastname: String,
+  socialMedia: {
+    facebook: String,
+    twitter: String,
+    linkedin: String,
+  },
+  phoneNumber: String,
+  isBlocked: { type: Boolean, default: false },
 });
 
 // Add permissions based on user role

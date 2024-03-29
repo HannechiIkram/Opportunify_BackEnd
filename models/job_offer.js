@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-
 const job_offer = new Schema({
   title: String,
   description: String,
@@ -13,6 +12,7 @@ const job_offer = new Schema({
   field:String,
   salary_informations:String,
  deadline:String,
+ image :String,
  createdAt: { type: Date, default: Date.now } ,// Champ pour la date de création, avec la valeur par défaut de la date actuelle
  company: { type: Schema.Types.ObjectId, ref: 'Usercompany', required: true }
 

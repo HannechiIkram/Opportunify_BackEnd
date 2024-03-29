@@ -13,8 +13,11 @@ const userJobSeekerSchema = new Schema({
   phone: Number,
   address: String,
   password: String,
-  image: String,
-  role_jobseeker: { type: String, enum: ['student', 'alumni', 'staff'] }
+// Autres champs de votre modèle...
+image: {
+  type: String, // Type de données pour l'URL de l'image
+  // Autres options de champ si nécessaire...
+},  role_jobseeker: { type: String, enum: ['student', 'alumni', 'staff'] }
 });
 
 module.exports= mongoose.model('UserJobSeeker', userJobSeekerSchema);

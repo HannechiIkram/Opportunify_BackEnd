@@ -1,14 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' }); // Set the destination folder for file uploads
+const upload = multer({ dest: 'ikramm/' }); // Set the destination folder for file uploads
 const Application = require("../models/application");
 const applicationController = require("../Controllers/applicationController");
 const validate = require("../midill/validate");
+const application = require("../models/application");
 const nodemailer = require('nodemailer');
+const twilio = require('twilio');
+
+
 
 const bodyParser = require("body-parser");
-
 // [READ] 
 router.get("/getall", applicationController.getall);
 
@@ -43,7 +46,9 @@ router.delete("/delete/:id", async function (req, res) {
     }
   });
 
-// Search based on the date of the application
+  
+
+  // Search based on the date of the application
 router.get("/search/date/:date", async function (req, res) {
     try {
       const date = new Date(req.params.date);
@@ -55,8 +60,8 @@ router.get("/search/date/:date", async function (req, res) {
     }
   });
   
-// Search based on the jobField
-router.get("/search/jobField/:jobField", async function (req, res) {
+  // Search based on the jobField
+  router.get("/search/jobField/:jobField", async function (req, res) {
     try {
       const jobField = req.params.jobField;
       const applications = await Application.find({ jobField });
@@ -67,8 +72,8 @@ router.get("/search/jobField/:jobField", async function (req, res) {
     }
   });
   
-// Search based on the status
-router.get("/search/status/:status", async function (req, res) {
+  // Search based on the status
+  router.get("/search/status/:status", async function (req, res) {
     try {
       const status = req.params.status;
       const applications = await Application.find({ status });
@@ -79,7 +84,7 @@ router.get("/search/status/:status", async function (req, res) {
     }
   });
 
-const transporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     service: 'hotmail',
     auth: {
         user: 'opportunify@outlook.com',
@@ -90,8 +95,10 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// POST route to handle form submission for applying to a job offer
-router.post('/apply', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+
+
+ // POST route to handle form submission for applying to a job offer
+ router.post('/apply', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
       const { userName, userSurname, email, phone, education } = req.body;
       const cv = req.files['cv'][0].path;
@@ -136,6 +143,7 @@ router.post('/apply', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'cover
   }
 });
 
+
 // GET route to retrieve application details by ID
 router.get('/get/:id', async (req, res) => {
     try {
@@ -169,14 +177,15 @@ router.get('/get/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
 // Ajouter les routes pour accepter et refuser une application
 router.put("/accept/:id", applicationController.acceptApplication);
 router.put("/reject/:id", applicationController.rejectApplication);
+
 
 router.get('/:id', applicationController.getById);
 
 // Middleware to parse JSON requests
 router.use(bodyParser.json());
+
 
 module.exports = router;

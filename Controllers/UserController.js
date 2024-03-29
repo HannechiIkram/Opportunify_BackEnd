@@ -1,6 +1,8 @@
 
 const UserModel = require('../models/user');
 const UserCompanyModel = require('../models/user-company');
+const mongoose = require("mongoose"); // Importez Mongoose ici
+const User = require("../models/user");
 
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
@@ -18,7 +20,7 @@ const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 //ajouter un user quelconque( pour l'admin peut etre)
 const registerUser = async (req, res) => {
   try {
-    const { name,email, password, role } = req.body;
+    const { name,email, password, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
 
     // Validate input
     if (!email || !password || !role||!name) {
@@ -39,7 +41,15 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
+      role, 
+      image: imageUrl,// Add image URL to user data
+
+      address,
+      phone,
+      phoneNumber,
+      socialMedia,
+      lastname,
+      description
     });
 
     // Return response
@@ -441,8 +451,144 @@ const createUserCompany = async (req, res) => {
 
 */
 
-module.exports = {
 
+
+///////
+
+const createUser = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
+
+    // Validate input
+
+      // Check if role is provided in the request body
+      if (!req.body.role) {
+        return res.status(400).json({ message: "Role is required" });
+    }
+
+    // Check if the provided role is 'admin'
+    if (req.body.role !== 'admin') {
+        return res.status(400).json({ message: "Only 'admin' role is allowed" });
+    }
+    if (!email || !password || !role || !name) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email is already taken' });
+    }
+
+    // Hash the password
+    const hashedPassword = await hashPassword(password);
+
+    // Create new user
+    const newUser = await UserModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+    });
+
+    // Return response
+    return res.status(201).json({
+      id: newUser._id,
+      email: newUser.email,
+      role: newUser.role,
+    });
+  } catch (error) {
+    console.error('Error during user creation:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+//
+/*const modifyUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, email, role } = req.body;
+
+    // Check if user exists
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update user details
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.role = role || user.role;
+
+    await user.save();
+
+    return res.status(200).json({ message: 'User modified successfully', user });
+  } catch (error) {
+    console.error('Error modifying user:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};*/const getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id; // Access the user ID from req.params.id
+
+    const user = await User.findById(userId).select('name image email password role address phone description lastname socialMedia phoneNumber');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
+// Fonction pour accepter un utilisateur par e-mail
+async function acceptUserByEmail(email) {
+  try {
+    // Trouver l'utilisateur par son e-mail dans la base de données
+    const user = await User.findOne({ email });
+    if (!user) {
+      return { success: false, message: 'Utilisateur non trouvé' };
+    }
+
+    // Mettre à jour le rôle de l'utilisateur, par exemple, pour "company"
+    user.role = 'company';
+    await user.save();
+
+    // Envoyer un e-mail de notification à l'utilisateur
+    await sendEmail(email, 'Acceptation de votre compte', 'Votre compte a été accepté.');
+
+    return { success: true, message: 'Utilisateur accepté avec succès' };
+  } catch (error) {
+    console.error('Erreur lors de l\'acceptation de l\'utilisateur:', error);
+    return { success: false, message: 'Erreur interne du serveur' };
+  }
+}
+
+// Fonction pour refuser un utilisateur par e-mail
+async function rejectUserByEmail(email) {
+  try {
+    // Supprimer l'utilisateur de la base de données
+    const deletedUser = await User.findOneAndDelete({ email });
+    if (!deletedUser) {
+      return { success: false, message: 'Utilisateur non trouvé' };
+    }
+
+    // Envoyer un e-mail de notification à l'utilisateur
+    await sendEmail(email, 'Rejet de votre demande de compte', 'Votre demande de compte a été rejetée.');
+
+    return { success: true, message: 'Utilisateur rejeté avec succès' };
+  } catch (error) {
+    console.error('Erreur lors du rejet de l\'utilisateur:', error);
+    return { success: false, message: 'Erreur interne du serveur' };
+  }
+}
+
+
+module.exports = {
+  
   registerUserCompany,
   loginUser,
   refreshAccessToken,
@@ -452,8 +598,10 @@ module.exports = {
   speedLimiter,
   registerUser,
   getUsers,
-  getUserCompany
- 
-  
+  getUserCompany,
+  createUser,
+  getUserById,
+  acceptUserByEmail, rejectUserByEmail,
+
 
 };

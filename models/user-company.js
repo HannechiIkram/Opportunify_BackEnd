@@ -21,8 +21,13 @@ const userCompanySchema = new Schema({
   domainOfActivity: String,
   resetToken: String,
   resetTokenExpires: Date,
-  image: String 
-
+// Autres champs de votre modèle...
+image: {
+  type: String, // Type de données pour l'URL de l'image
+  // Autres options de champ si nécessaire...
+},
+accepted: { type: Boolean, default: false },
+rejected: { type: Boolean, default: false }
 
 })
 

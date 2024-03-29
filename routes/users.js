@@ -2,20 +2,20 @@ var express = require('express');
 var router = express.Router();
 const multer = require('multer');
 const User = require("../models/user");
-
 const crypto = require('crypto');
 const passport = require('passport');
 const cors = require ('cors');
-const { registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
-
+const { registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword ,getUserById} = require('../Controllers/UserController');
+const { createEvent,getAllEvents,getEventById,updateEvent,deleteEvent} = require('../Controllers/eventscont');
 const { registerUser}=require('../Controllers/UserController');
+const { createUser }=require('../Controllers/UserController');
+
 const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
 //const {createUserCompany}=require('../Controllers/UserController');
 const { getUsers } = require('../Controllers/UserController')
 const { getUserCompany } = require('../Controllers/UserController')
 const accessControl = require('../midill/accescontrol');
-
-
+const { acceptUserByEmail, rejectUserByEmail } = require('../Controllers/UserController');
 // Middleware for restricting access to certain routes
 const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
@@ -29,6 +29,9 @@ router.use(
   })
 )
 ////
+router.get('/:id', getUserById);
+
+
 router.post('/registeruser',registerUser)
 
 router.post('/registerjobseeker',  registerUserjobseeker)
@@ -91,7 +94,18 @@ router.get("/search/company/:name", async function (req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
+router.delete("/delete/:id", async function (req, res) {
+  try {
+    const deleted = await User.findOneAndDelete({ _id: req.params.id });
+    if (!deleted) {
+      return res.status(404).json({ error: 'user not found' });
+    }
+    res.status(200).json({ message: 'user deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 router.get('/dashboard', isAdmin, (req, res) => {
     // This route can only be accessed by admin
   });
@@ -152,7 +166,7 @@ router.get('/auth/linkedin/callback',
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Define where to store uploaded files
+    cb(null, '/kiki'); // Define where to store uploaded files
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname); // Define file name
@@ -182,6 +196,92 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+//////////////////////  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
+///////////////////////////
+//////////////////////
+router.post('/createUser', upload.single('image'), createUser);
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const userData = req.body; // Updated user data sent in the request body
+
+  try {
+    // Find the user by ID and update all attributes
+    const updatedUser = await User.findByIdAndUpdate(id, userData, { new: true });
+
+    // Check if the user was found and updated
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Send the updated user data in the response
+    res.json(updatedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+// Route to block/unblock user
+router.put('/block/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Toggle the blocked status of the user
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+
+    res.json({ message: 'User blocked/unblocked successfully', user });
+  } catch (error) {
+    console.error('Error blocking/unblocking user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Route pour débloquer un utilisateur
+router.put('/unblock/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Trouver l'utilisateur dans la base de données
+    const user = await User.findById(userId);
+
+    // Vérifier si l'utilisateur existe
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Débloquer l'utilisateur en définissant isBlocked à false
+    user.isBlocked = false;
+
+    // Sauvegarder les modifications dans la base de données
+    await user.save();
+
+    // Renvoyer une réponse indiquant que l'utilisateur a été débloqué avec succès
+    res.json({ message: 'User unblocked successfully', user });
+  } catch (error) {
+    console.error('Error unblocking user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Créer un nouvel événement
+router.post('/events',createEvent);
+
+// Récupérer tous les événements
+router.get('/events', getAllEvents);
+
+// Récupérer un événement par son identifiant
+router.get('/events/:id', getEventById);
+
+// Mettre à jour un événement existant
+router.put('/events/:id',updateEvent);
+
+// Supprimer un événement
+router.delete('/events/:id', deleteEvent);
+// Route pour accepter un utilisat
+
 
 module.exports = router;
  
