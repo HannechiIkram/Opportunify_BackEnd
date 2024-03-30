@@ -1,8 +1,12 @@
-const mongoose = require ('mongoose'); 
-const {Schema} = mongoose
-///ikram
-//ikram
-const userCompanySchema = new Schema({
+// profileCompanyModel.js
+const mongoose = require('mongoose');
+
+const profileCompanySchema = new mongoose.Schema({
+  userCid: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true, 
+  },
   name: String,
   email: {
     type: String,
@@ -22,7 +26,7 @@ const userCompanySchema = new Schema({
   resetToken: String,
   resetTokenExpires: Date,
   image: String 
-})
+  // Add more fields as needed
+});
 
-
-module.exports =mongoose.model('Usercompany', userCompanySchema) ;
+module.exports = mongoose.model('ProfileCompany', profileCompanySchema);

@@ -1,4 +1,4 @@
-
+ 
 const mongoose = require('mongoose');
 const { rolePermissions } = require('../helpers/permissions');
 
@@ -13,8 +13,8 @@ const userSchema = new mongoose.Schema({
     select: false 
   },
   resetToken: String,
-  resetTokenExpires: Date
-
+  resetTokenExpires: Date,
+  image: String 
 });
 
 // Add permissions based on user role

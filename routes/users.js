@@ -1,20 +1,35 @@
 var express = require('express');
 var router = express.Router();
 
-const User = require("../models/user");
+//////////
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploadsimages/'); // specify the folder where uploaded files will be stored
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // specify the file name of the uploaded file
+  }
+});
 
+const upload = multer({ storage: storage });
+const { comparePassword, hashPassword } = require('../helpers/auth');
+
+const User = require("../models/user");
+const profileJobSeekerModel = require("../models/Profile_jobseeker");
+const  JobSeeker = require("../models/user-jobseeker")
 const crypto = require('crypto');
 const passport = require('passport');
 const cors = require ('cors');
-const { registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword } = require('../Controllers/UserController');
+const { registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword,getUserById,getProfileJobSeekerById} = require('../Controllers/UserController');
 
-const { registerUser}=require('../Controllers/UserController');
-const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
+const { registerUser,getAllJobSeekerProfiles,updateProfileJobSeekerById,getProfileCompanyById}=require('../Controllers/UserController');
+const {registerUserjobseeker,getUserJobSeekerProfile, getUserJobSeekers,getUserJobSeekerById}=require('../Controllers/User-jobseekerController');
 //const {createUserCompany}=require('../Controllers/UserController');
 const { getUsers } = require('../Controllers/UserController')
 const { getUserCompany } = require('../Controllers/UserController')
 const accessControl = require('../midill/accescontrol');
-
+const authenticateUser= require('../midill/authMiddleware');
 
 // Middleware for restricting access to certain routes
 const isAdmin = accessControl(['admin']);
@@ -33,6 +48,41 @@ router.post('/registeruser',registerUser)
 
 router.post('/registerjobseeker',  registerUserjobseeker)
 
+//
+router.get('/jobSeekerProfile', getUserJobSeekerProfile);
+router.get('/getProfileByUserId',getUserJobSeekerProfile);
+
+router.get('/profile/:_id', getUserJobSeekerById);
+
+router.get('/getProfileCompanyById/:profileId', getProfileCompanyById);
+
+//router.get('/getAllProfileCompanies',getAllProfileCompanies);
+
+router.get('/getProfileJobSeekerById/:profileId', getProfileJobSeekerById);
+router.put('/updateProfileJobSeekerById/:profileid', async (req, res) => {
+  try {
+    const profileId = req.params.profileid;
+    const updates = req.body; // The updates to be applied
+
+    // Call the function to update the profile
+    const updatedProfile = await updateProfileJobSeekerById(profileId, updates);
+
+    res.status(200).json({ message: 'Profile updated successfully', profile: updatedProfile });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/getAllJobSeekerProfiles', getAllJobSeekerProfiles);
+
+
+
+
+router.get('/getUserJobSeekers',getUserJobSeekers);
+router.get('/getUser/:userId', getUserById);
+
+//
 //router.post('/registercompany',  createUserCompany)
 router.get('/', getUsers);
 router.get('/company', getUserCompany);
@@ -41,6 +91,50 @@ router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
 router.post('/forgot-password', forgotPassword)
 router.post('/reset-password', resetPassword)
+
+///////////////////////////////////////
+// [UPDATE]
+// Update profile job seeker by ID
+/*
+router.put("/update/:id", async (req, res) => {
+  try {
+    const profileId = req.params.id;
+    const updates = req.body; // The updates to be applied
+
+    // Find the profile job seeker by ID
+    const profile = await profileJobSeekerModel.findById(profileId);
+
+    // Check if the profile exists
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile job seeker not found' });
+    }
+
+    // Update the profile job seeker
+    await profileJobSeekerModel.findByIdAndUpdate(profileId, updates);
+
+    // Update corresponding job seeker
+    await JobSeeker.findOneAndUpdate({ email: profile.email }, updates);
+
+    // If the updates include name or password, update the corresponding user
+    if (updates.name || updates.password) {
+      const userUpdates = {};
+      if (updates.name) userUpdates.name = updates.name;
+      if (updates.password) userUpdates.password = updates.password;
+
+      await User.findOneAndUpdate({ email: profile.email }, userUpdates);
+    }
+
+    res.status(200).json({ message: 'Profile job seeker updated successfully' });
+  } catch (error) {
+    console.error('Error updating profile job seeker:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+*/
+
+//////////////////////////
+
+
 
 
 
@@ -154,6 +248,8 @@ router.get('/auth/linkedin/callback',
     res.redirect('/');
   }
 );*/
+
+
 
 
 module.exports = router;
