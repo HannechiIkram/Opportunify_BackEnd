@@ -3,24 +3,25 @@ var router = express.Router();
 const multer = require('multer');
 const User = require("../models/user");
 const crypto = require('crypto');
+const { acceptUserByEmail, rejectUserByEmail } = require('../Controllers/UserController');
+
 const passport = require('passport');
 const cors = require ('cors');
-const { registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword ,getUserById} = require('../Controllers/UserController');
+const { registerUserCompany, loginUser,speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword ,getUserById} = require('../Controllers/UserController');
 const { createEvent,getAllEvents,getEventById,updateEvent,deleteEvent} = require('../Controllers/eventscont');
 const { registerUser}=require('../Controllers/UserController');
 const { createUser }=require('../Controllers/UserController');
-
+const authMiddleware = require ('../midill/authMiddleware');
+const { logoutUser } = require ('../Controllers/UserController')
 const {registerUserjobseeker}=require('../Controllers/User-jobseekerController');
 //const {createUserCompany}=require('../Controllers/UserController');
 const { getUsers } = require('../Controllers/UserController')
 const { getUserCompany } = require('../Controllers/UserController')
 const accessControl = require('../midill/accescontrol');
-const { acceptUserByEmail, rejectUserByEmail } = require('../Controllers/UserController');
 // Middleware for restricting access to certain routes
 const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
 const isJobSeeker = accessControl(['job_seeker']);
-
 
 router.use(
   cors({
@@ -28,8 +29,10 @@ router.use(
     origin: 'http://localhost:5173'
   })
 )
+router.post('/logout',authMiddleware, logoutUser);
+
 ////
-router.get('/:id', getUserById);
+router.get('/:id',authMiddleware, getUserById);
 
 
 router.post('/registeruser',registerUser)
@@ -37,8 +40,8 @@ router.post('/registeruser',registerUser)
 router.post('/registerjobseeker',  registerUserjobseeker)
 
 //router.post('/registercompany',  createUserCompany)
-router.get('/', getUsers);
-router.get('/company', getUserCompany);
+router.get('/',authMiddleware,getUsers);
+router.get('/company',authMiddleware, getUserCompany);
 router.post('/registerCompany', registerUserCompany)
 router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
@@ -47,7 +50,7 @@ router.post('/reset-password', resetPassword)
 
 
 
-router.delete("/delete/:id", async function (req, res) {
+router.delete("/delete/:id",authMiddleware, async function (req, res) {
   try {
     const deleted = await User.findOneAndDelete({ _id: req.params.id });
     if (!deleted) {
@@ -59,7 +62,11 @@ router.delete("/delete/:id", async function (req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+// Accept user route
+router.put('/accept/:email',authMiddleware, acceptUserByEmail);
 
+// Reject user route
+router.put('/reject/:email',authMiddleware, rejectUserByEmail);
 
 // Route for initiating Facebook authentication
 router.get('/auth/facebook', passport.authenticate('facebook'));
@@ -69,21 +76,9 @@ router.get('/auth/facebook/callback', passport.authenticate('facebook', {
   failureRedirect: '/login', // Redirect to login page if authentication fails
 }));
 
-router.post('/logout', (req, res) => {
-  try {
-    // Clear the refresh token cookie
-    res.clearCookie('refreshToken', { httpOnly: true, secure: true });
-    
-    // Clear access token cookie
-    res.clearCookie('accessToken', { httpOnly: true, secure: true });
-    
-    // Send a JSON response indicating successful logout
-    res.status(200).json({ message: 'Logout successful' });
-  } catch (error) {
-    console.error('Logout Error:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+
+
+
 router.get("/search/company/:name", async function (req, res) {
   try {
     const name = req.params.name;
@@ -94,7 +89,7 @@ router.get("/search/company/:name", async function (req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-router.delete("/delete/:id", async function (req, res) {
+router.delete("/delete/:id", authMiddleware,async function (req, res) {
   try {
     const deleted = await User.findOneAndDelete({ _id: req.params.id });
     if (!deleted) {
@@ -106,7 +101,7 @@ router.delete("/delete/:id", async function (req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-router.get('/dashboard', isAdmin, (req, res) => {
+router.get('/dashboard',authMiddleware, isAdmin, (req, res) => {
     // This route can only be accessed by admin
   });
   router.get('/Job_offer', isCompany, (req, res) => {
@@ -199,7 +194,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 //////////////////////  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
 ///////////////////////////
 //////////////////////
-router.post('/createUser', upload.single('image'), createUser);
+router.post('/createUser',authMiddleware, upload.single('image'), createUser);
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const userData = req.body; // Updated user data sent in the request body
@@ -221,7 +216,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 // Route to block/unblock user
-router.put('/block/:id', async (req, res) => {
+router.put('/block/:id',authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -240,7 +235,7 @@ router.put('/block/:id', async (req, res) => {
 });
 
 // Route pour débloquer un utilisateur
-router.put('/unblock/:id', async (req, res) => {
+router.put('/unblock/:id',authMiddleware, async (req, res) => {
   const userId = req.params.id;
 
   try {
@@ -280,8 +275,6 @@ router.put('/events/:id',updateEvent);
 
 // Supprimer un événement
 router.delete('/events/:id', deleteEvent);
-// Route pour accepter un utilisat
-
 
 module.exports = router;
  

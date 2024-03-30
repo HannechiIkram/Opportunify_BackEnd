@@ -1,17 +1,29 @@
 const express = require("express");
+const User = require ("../models/user")
+const job_offer = require("../models/job_offer")
 
-const job_offer = require("../models/job_offer");
 
-// la rcherche de tous les utilisateurs
+const UserCompanyModel = require('../models/user-company');
+
 async function getall(req, res) {
   try {
-   
+    // Récupérer l'utilisateur à partir des données attachées par le middleware authMiddleware
+    const user = req.user;
+
+    // Vérifier si l'utilisateur est connecté en vérifiant s'il existe dans la demande
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized - User not logged in' });
+    }
+
+    // Si l'utilisateur est connecté, vous pouvez exécuter la logique pour récupérer tous les utilisateurs
     const data = await job_offer.find();
     res.send(data);
   } catch (err) {
-    res.send(err);
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
 
 //la recherche par id
 

@@ -26,8 +26,8 @@ image: {
   type: String, // Type de données pour l'URL de l'image
   // Autres options de champ si nécessaire...
 },
-accepted: { type: Boolean, default: false },
-rejected: { type: Boolean, default: false }
+accepted: { type: Boolean, default: true },
+
 
 })
 

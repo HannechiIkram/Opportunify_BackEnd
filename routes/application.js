@@ -8,13 +8,14 @@ const validate = require("../midill/validate");
 const application = require("../models/application");
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
+const UserJobSeeker = require('../models/user-jobseeker'); // Assurez-vous de corriger le chemin si nécessaire
 
 const authMiddleware = require ('../midill/authMiddleware');
 
 
 const bodyParser = require("body-parser");
 // [READ] 
-router.get("/getall", applicationController.getall);
+router.get("/getall",authMiddleware, applicationController.getall);
 
 // [Add] 
 router.post("/new", validate, applicationController.add);
@@ -34,7 +35,7 @@ router.put("/update/:id", async function (req, res) {
   });
 
 //  [DELETE] 
-router.delete("/delete/:id", async function (req, res) {
+router.delete("/delete/:id",authMiddleware, async function (req, res) {
     try {
       const deletedApplication = await Application.findOneAndDelete({ _id: req.params.id });
       if (!deletedApplication) {
@@ -96,54 +97,59 @@ router.get("/search/date/:date", async function (req, res) {
     }
 });
 
-
-
- // POST route to handle form submission for applying to a job offer
- router.post('/apply', authMiddleware,upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+// POST route to handle form submission for applying to a job offer
+router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
-      const { userName, userSurname, email, phone, education } = req.body;
-      const cv = req.files['cv'][0].path;
-      const coverLetter = req.files['coverLetter'][0].path;
-      const applicationDate = new Date();
-      const status = "Under review";
+    const { email } = req.body; // Extract email from the request body
+    const cv = req.files['cv'][0].path;
+    const coverLetter = req.files['coverLetter'][0].path;
+    const applicationDate = new Date();
+    const status = "Under review";
 
-      const newApplication = new Application({
-          userName,
-          userSurname,
-          email,
-          phone,
-          education,
-          cv,
-          coverLetter,
-          applicationDate,
-          status
+    // Check if the job seeker already exists
+    let jobSeeker = await UserJobSeeker.findOne({ email });
+    
+    // If the job seeker doesn't exist, create a new one
+    if (!jobSeeker) {
+      jobSeeker = new UserJobSeeker({
+        role_jobseeker: "student" // You might adjust this value based on your requirements
+        // Add other fields as needed
       });
+      await jobSeeker.save();
+    }
 
-      await newApplication.save();
+    const newApplication = new Application({
+      cv,
+      coverLetter,
+      applicationDate,
+      status,
+      job_seeker: jobSeeker._id // Associate the application with the job seeker
+    });
 
-      // Send email notification
-      const mailOptions = {
-          from: 'opportunify@outlook.com',
-          to: req.body.email,
-          subject: 'Application Submitted Successfully',
-          text: 'Your application has been submitted successfully. We will review it shortly.'
-      };
+    await newApplication.save();
 
-      transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-              console.error('Error sending email notification:', error);
-          } else {
-              console.log('Email notification sent:', info.response);
-          }
-      });
+    // Send email notification
+    // const mailOptions = {
+    //   from: 'opportunify@outlook.com',
+    //   to: req.body.email,
+    //   subject: 'Application Submitted Successfully',
+    //   text: 'Your application has been submitted successfully. We will review it shortly.'
+    // };
 
-      res.status(201).json({ message: 'Application submitted successfully' });
+    // transporter.sendMail(mailOptions, (error, info) => {
+    //   if (error) {
+    //     console.error('Error sending email notification:', error);
+    //   } else {
+    //     console.log('Email notification sent:', info.response);
+    //   }
+    // });
+
+    res.status(201).json({ message: 'Application submitted successfully' });
   } catch (error) {
-      console.error('Error submitting application:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error submitting application:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 // GET route to retrieve application details by ID
 router.get('/get/:id', async (req, res) => {
@@ -179,8 +185,8 @@ router.get('/get/:id', async (req, res) => {
     }
 });
 // Ajouter les routes pour accepter et refuser une application
-router.put("/accept/:id", applicationController.acceptApplication);
-router.put("/reject/:id", applicationController.rejectApplication);
+router.put("/accept/:id",authMiddleware, applicationController.acceptApplication);
+router.put("/reject/:id",authMiddleware, applicationController.rejectApplication);
 
 
 router.get('/:id', applicationController.getById);

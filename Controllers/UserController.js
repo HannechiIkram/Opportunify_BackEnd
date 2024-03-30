@@ -2,6 +2,7 @@
 const UserModel = require('../models/user');
 const mongoose = require("mongoose"); // Importez Mongoose ici
 const UserCompanyModel = require('../models/user-company');
+const User = require('../models/user');
 
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
@@ -19,7 +20,7 @@ const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 //ajouter un user quelconque( pour l'admin peut etre)
 const registerUser = async (req, res) => {
   try {
-    const { name,email, password, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
+    const { name,email, password,lastname, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
 
     // Validate input
     if (!email || !password || !role||!name) {
@@ -206,7 +207,7 @@ const loginUser = async (req, res) => {
     const accessToken = jwt.sign(
       { email: user.email, id: user._id, name: user.name },
       process.env.JWT_SECRET,
-      { expiresIn: '5m' } // Adjust the expiration time as needed
+      { expiresIn: '60m' } // Adjust the expiration time as needed
     );
 
     // Generate refresh token
@@ -216,11 +217,7 @@ const loginUser = async (req, res) => {
       { expiresIn: '7d' } // Adjust the expiration time as needed
     );
 
-    // Set both tokens as HTTP-only cookies
-  !//  res.cookie('accessToken', accessToken, {
-     // httpOnly: true,
-      //secure: true, // other cookie options as needed
-    //});
+ 
 
     res.cookie('jwt', refreshToken, {
       httpOnly: true,
@@ -457,6 +454,8 @@ const createUserCompany = async (req, res) => {
 ///////
 
 const createUser = async (req, res) => {
+  const userId = req.user._id; // ID de l'utilisateur connecté
+
   try {
     const { name, email, password, role } = req.body;
     const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
@@ -528,7 +527,9 @@ const createUser = async (req, res) => {
     console.error('Error modifying user:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
-};*/const getUserById = async (req, res) => {
+};*/
+
+const getUserById = async (req, res) => {
   try {
     const userId = req.params.id; // Access the user ID from req.params.id
 
@@ -544,52 +545,57 @@ const createUser = async (req, res) => {
 };
 
 
-
-// Fonction pour accepter un utilisateur par e-mail
-async function acceptUserByEmail(email) {
+// Backend: logoutUser function
+const logoutUser = (req, res) => {
   try {
-    // Trouver l'utilisateur par son e-mail dans la base de données
-    const user = await User.findOne({ email });
+    // Effacer le cookie de rafraîchissement
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      secure: true, // Assurez-vous que cela correspond aux options de cookie de connexion
+      sameSite: 'None' // Assurez-vous que cela correspond aux options de cookie de connexion
+    });
+    
+    // Envoyer une réponse JSON indiquant une déconnexion réussie
+    res.status(200).json({ message: 'Déconnexion réussie' });
+  } catch (error) {
+    console.error('Erreur de déconnexion :', error);
+    return res.status(500).json({ error: 'Erreur interne du serveur' });
+  }
+};
+
+// Accept user by email
+const acceptUserByEmail = async (req, res) => {
+  const { email } = req.params;
+  try {
+    const user = await User.findOneAndUpdate({ email }, { $set: { accepted: true } });
     if (!user) {
-      return { success: false, message: 'Utilisateur non trouvé' };
+      return res.status(404).json({ error: 'User not found' });
     }
-
-    // Mettre à jour le rôle de l'utilisateur, par exemple, pour "company"
-    user.role = 'company';
-    await user.save();
-
-    // Envoyer un e-mail de notification à l'utilisateur
-    await sendEmail(email, 'Acceptation de votre compte', 'Votre compte a été accepté.');
-
-    return { success: true, message: 'Utilisateur accepté avec succès' };
+    res.status(200).json({ message: 'User accepted successfully' });
   } catch (error) {
-    console.error('Erreur lors de l\'acceptation de l\'utilisateur:', error);
-    return { success: false, message: 'Erreur interne du serveur' };
+    console.error('Error accepting user:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-}
+};
 
-// Fonction pour refuser un utilisateur par e-mail
-async function rejectUserByEmail(email) {
+// Reject user by email
+const rejectUserByEmail = async (req, res) => {
+  const { email } = req.params;
   try {
-    // Supprimer l'utilisateur de la base de données
-    const deletedUser = await User.findOneAndDelete({ email });
-    if (!deletedUser) {
-      return { success: false, message: 'Utilisateur non trouvé' };
+    const user = await User.findOneAndUpdate({ email }, { $set: { accepted: false } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-
-    // Envoyer un e-mail de notification à l'utilisateur
-    await sendEmail(email, 'Rejet de votre demande de compte', 'Votre demande de compte a été rejetée.');
-
-    return { success: true, message: 'Utilisateur rejeté avec succès' };
+    res.status(200).json({ message: 'User rejected successfully' });
   } catch (error) {
-    console.error('Erreur lors du rejet de l\'utilisateur:', error);
-    return { success: false, message: 'Erreur interne du serveur' };
+    console.error('Error rejecting user:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-}
-
+};
 
 module.exports = {
-  
+  rejectUserByEmail,
+  acceptUserByEmail,
   registerUserCompany,
   loginUser,
   refreshAccessToken,
@@ -603,6 +609,7 @@ module.exports = {
   createUser,
   getUserById,
   acceptUserByEmail, rejectUserByEmail,
+  logoutUser,
 
 
 };

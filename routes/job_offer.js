@@ -3,9 +3,13 @@ const router = express.Router();
 const userController = require("../Controllers/job-offerController");
 const authMiddleware = require ('../midill/authMiddleware');
 const job_offerModel = require("../models/job_offer");
+const accessControl = require('../midill/accescontrol');
 
+const isAdmin = accessControl(['admin']);
+const isCompany = accessControl(['company']);
+const isJobSeeker = accessControl(['job_seeker']);
 // [UPDATE]
-router.put("/update/:id", async function (req, res) {
+router.put("/update/:id",authMiddleware, async function (req, res) {
     try {
       const updatedjob_offer = await job_offerModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (!updatedjob_offer) {
@@ -19,7 +23,7 @@ router.put("/update/:id", async function (req, res) {
   });
 
 //  [DELETE] 
-router.delete("/delete/:id", async function (req, res) {
+router.delete("/delete/:id",authMiddleware, async function (req, res) {
     try {
       const deletedjoboffer = await job_offerModel.findOneAndDelete({ _id: req.params.id });
       if (!deletedjoboffer) {
@@ -34,7 +38,7 @@ router.delete("/delete/:id", async function (req, res) {
 
 
     // Search based on the title
-    router.get("/search/title/:title", async function (req, res) {
+    router.get("/search/title/:title",authMiddleware, async function (req, res) {
         try {
           const title = req.params.title;
           const joboffers = await job_offerModel.find({ title });
@@ -45,9 +49,9 @@ router.delete("/delete/:id", async function (req, res) {
         }
       });
 
-router.get("/getall", userController.getall);
+router.get("/getall",authMiddleware, userController.getall);
 
-router.get("/get/:id", userController.getbyid);
+router.get("/get/:id",authMiddleware, userController.getbyid);
 //router.post("/add", userController.add);
 router.post('/add', authMiddleware, userController.add);
 

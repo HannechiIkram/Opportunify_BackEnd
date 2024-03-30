@@ -24,6 +24,7 @@ email: { type: String, required: true },
   resetTokenExpires: Date,
   phone: Number,
   description: String,
+  accepted: { type: Boolean, default: true },
 
   lastname: String,
   socialMedia: {

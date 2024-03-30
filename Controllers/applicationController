@@ -7,12 +7,13 @@ const Application = require("../models/application"); // Corrected import statem
 // la recherche de tous les applications
 async function getall(req, res) {
   try {
-    const data = await Application.find(); // Corrected usage of Application model
+    const data = await Application.find().populate('job_seeker', 'name email');
     res.send(data);
   } catch (err) {
     res.send(err);
   }
 }
+
 
 /*// la recherche par id
 async function getbyid(req, res) {
