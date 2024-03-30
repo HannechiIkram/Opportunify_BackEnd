@@ -8,10 +8,16 @@ const validate = require("../midill/validate");
 const application = require("../models/application");
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const JobOffer = require('../models/job_offer'); 
+
+
+
 
 // [READ] 
 router.get("/getall", applicationController.getall);
-
+//get bel id 
+router.get("/get/:id", applicationController.getbyid);
 // [Add] 
 router.post("/new", validate, applicationController.add);
 
@@ -93,16 +99,34 @@ router.get("/search/date/:date", async function (req, res) {
 });
 
 
-
- // POST route to handle form submission for applying to a job offer
- router.post('/apply', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+// POST route to handle form submission for applying to a job offer
+router.post('/apply', upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
-      const { userName, userSurname, email, phone, education } = req.body;
+      const { userName, userSurname, email, phone, education, offerId } = req.body; // Ajoutez offerId à partir du corps de la demande
       const cv = req.files['cv'][0].path;
       const coverLetter = req.files['coverLetter'][0].path;
       const applicationDate = new Date();
       const status = "Under review";
 
+      // Vérifiez d'abord si l'ID de l'offre est valide
+      if (!mongoose.Types.ObjectId.isValid(offerId)) {
+          return res.status(400).json({ error: 'Invalid offer ID' });
+      }
+
+      
+      const jobOffer = await JobOffer.findById(offerId);
+      if (!jobOffer) {
+          return res.status(404).json({ error: 'Job offer not found' });
+      }
+
+      // Vérifier si la date limite de l'offre est passée
+      const currentDate = new Date();
+      const deadline = new Date(jobOffer.deadline);
+      if (currentDate > deadline) {
+          return res.status(400).json({ error: 'Application deadline has passed' });
+      }
+
+      
       const newApplication = new Application({
           userName,
           userSurname,
@@ -112,12 +136,13 @@ router.get("/search/date/:date", async function (req, res) {
           cv,
           coverLetter,
           applicationDate,
-          status
+          status,
+          job_offer: offerId 
       });
 
       await newApplication.save();
 
-      // Send email notification
+      // Envoyer une notification par e-mail
       const mailOptions = {
           from: 'opportunify@outlook.com',
           to: req.body.email,
@@ -141,38 +166,40 @@ router.get("/search/date/:date", async function (req, res) {
 });
 
 
+
 // GET route to retrieve application details by ID
 router.get('/get/:id', async (req, res) => {
-    try {
-        const applicationId = req.params.id;
+  try {
+    const applicationId = req.params.id;
 
-        // Find the application by ID and populate the 'candidate' field with candidate details
-        const foundApplication = await Application.findById(applicationId);
+    // Find the application by ID and populate the 'job_offer' field with job offer details
+    const foundApplication = await Application.findById(applicationId).populate('job_offer');
 
-        if (!foundApplication) {
-            return res.status(404).json({ error: 'Application not found' });
-        }
-
-        // Extract relevant information from the application object
-        const { userName, userSurname, email, phone, education, cv, coverLetter, applicationDate, status } = foundApplication;
-
-        // Return application details along with candidate details
-        res.json({
-          applicationId,
-            userName,
-            userSurname,
-            email,
-            phone,
-            education,
-            cv,
-            coverLetter,
-            applicationDate,
-            status,
-        });
-    } catch (error) {
-        console.error('Error fetching application details:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+    if (!foundApplication) {
+      return res.status(404).json({ error: 'Application not found' });
     }
+
+   
+    const { userName, userSurname, email, phone, education, cv, coverLetter, applicationDate, status } = foundApplication;
+
+
+    res.json({
+      applicationId,
+      userName,
+      userSurname,
+      email,
+      phone,
+      education,
+      cv,
+      coverLetter,
+      applicationDate,
+      status,
+      job_offer: foundApplication.job_offer 
+    });
+  } catch (error) {
+    console.error('Error fetching application details:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 
