@@ -1,7 +1,9 @@
 
 const UserModel = require('../models/user');
 const UserCompanyModel = require('../models/user-company');
-
+const JobSeekerModel = require ('../models/user-jobseeker');
+const ProfileJobSeeker = require('../models/Profile_jobseeker')
+const ProfileCompany= require('../models/Profile_company')
 const { comparePassword, hashPassword } = require('../helpers/auth');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -58,7 +60,7 @@ const registerUser = async (req, res) => {
 const transporter = require('../nodemailer-config');
 ;const registerUserCompany = async (req, res) => {
   try {
-    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity } = req.body;
+    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity, image } = req.body;
 
     // Vérification de la présence des champs obligatoires
     if (!name || !email || !password || !phoneNumber) {
@@ -101,6 +103,8 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
   if (existingUser) {
     return res.status(400).json({ error: 'Email is already taken' });
   }
+  
+  const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
 
   const hashedPassword = await hashPassword(password);
 
@@ -113,7 +117,9 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
     socialMedia,
     address,
     phoneNumber,
-    domainOfActivity
+    domainOfActivity,
+    image: imageUrl // Add image URL to user data
+
   });
 
   const newUser = await UserModel.create({
@@ -126,7 +132,9 @@ if (!/^[a-zA-Z\s\n]+$/.test(description)) {
     socialMedia,
     address,
     phoneNumber,
-    domainOfActivity
+    domainOfActivity,
+    image: imageUrl // Add image URL to user data
+
   });
 
   return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });
@@ -156,15 +164,24 @@ const loginLimiter = rateLimit({
   max: 5, // Max 5 requests per windowMs
   message: 'Too many login attempts, please try again later.',
 });
-///// new version
+
+// Set up slowing down of requests after 3 failed attempts within the windowMs
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
   delayAfter: 3, // After 3 requests within windowMs, delay subsequent requests
-  delayMs: () => 1000 // 1 second delay for all requests
+  delayMs: () => 180000, // Delay subsequent requests by 3 minutes
 });
 
 
 ///// login with Protection Against Brute Force Attacks
+/*
+*/
+
+
+
+
+
+
 
 const loginUser = async (req, res) => {
   try {
@@ -178,7 +195,68 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ error: 'User not found' });
     }
 
-    // Compare the provided password with the stored hashed password
+    // Initialize jobSeekerId and profileId
+    let jobSeekerId = null;
+    let profileId = null;
+    let companyId=null;
+    // Check if the user is a job seeker
+    if (user.role === 'job_seeker') {
+      // Retrieve the ID of the job seeker using JobSeekerModel
+      const jobSeeker = await JobSeekerModel.findOne({ email });
+      jobSeekerId = jobSeeker ? jobSeeker._id : null;
+
+      // Create a profile for the job seeker
+      const profile = new ProfileJobSeeker({
+        userId: jobSeekerId,
+        name: jobSeeker.name,
+        email: jobSeeker.email,
+        password:user.password,
+        lastname:jobSeeker.lastname,
+        phone:jobSeeker.phone,
+        address:jobSeeker.address,
+        birthdate:jobSeeker.birthdate,
+        role_jobseeker:jobSeeker.role_jobseeker,
+          image:jobSeeker.image,
+        // Add other fields as needed
+      });
+
+      // Save the profile to the database
+      const savedProfile = await profile.save();
+      profileId = savedProfile._id;
+    }
+
+
+    // Check if the user is a company
+    let company_profileId = null;
+
+    // Check if the user is a company
+    if (user.role === 'company') {
+      // Retrieve the company with the same email
+      const company = await UserCompanyModel.findOne({ email });
+      
+      // Check if a company with the provided email exists
+      if (!company) {
+        return res.status(400).json({ error: 'Company not found' });
+      }
+
+      // Create a profile for the company
+      const profileCompany = new ProfileCompany({
+        userCid: company._id, // Assuming the company model has '_id' as the primary key
+        name: company.name,
+        email: company.email,
+        password: company.password,
+        matriculeFiscale:company.matriculeFiscale,
+        description:company.description,
+        address:company.address,
+
+        // Add other fields from the company model as needed
+      });
+
+      // Save the profile to the database
+      const savedProfileCompany = await profileCompany.save();
+      company_profileId = savedProfileCompany._id;
+    }
+   // Compare the provided password with the stored hashed password
     const match = await comparePassword(password, user.password);
 
     // Check if the passwords match
@@ -188,38 +266,73 @@ const loginUser = async (req, res) => {
 
     // Generate access token
     const accessToken = jwt.sign(
-      { email: user.email, id: user._id, name: user.name },
+      { email: user.email, id: user._id, name: user.name, jobSeekerId, profileId,company_profileId  },
       process.env.JWT_SECRET,
-      { expiresIn: '1m' } // Adjust the expiration time as needed
+      { expiresIn: '5m' } // Adjust the expiration time as needed
     );
 
     // Generate refresh token
     const refreshToken = jwt.sign(
-      { email: user.email, id: user._id,role:user.role },
+      { email: user.email, id: user._id, role: user.role },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: '7d' } // Adjust the expiration time as needed
     );
 
-    // Set both tokens as HTTP-only cookies
+ /*   // Set both tokens as HTTP-only cookies
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true, // other cookie options as needed
     });
-
+*/
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true, // other cookie options as needed
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000 
     });
 
-    // Return the access token in the response
-    res.status(200).json({ accessToken, user });
+    // Return the access token, user data, jobSeekerId, and profileId in the response
+    res.status(200).json({ accessToken, user, jobSeekerId, profileId,company_profileId });
   } catch (error) {
     console.error(error);
-
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
+/*
+const getAllProfileCompanies = async (req, res) => {
+  try {
+    // Fetch all profile companies from the database
+    const profileCompanies = await ProfileCompany.find();
+
+    // Send the profile companies in the response
+    res.status(200).json({ profileCompanies });
+  } catch (error) {
+    console.error('Error fetching all profile companies:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};   */
+/////////////////////////////////////////////////////////////////////////////////
+const getProfileJobSeekerById = async (req, res) => {
+  try {
+    const profileId = req.params.profileId; // Assuming the profile ID is passed as a parameter
+
+    // Find the profile by ID
+    const profile = await ProfileJobSeeker.findById(profileId);
+
+    // Check if the profile exists
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Return the profile data
+    res.status(200).json({ profile });
+  } catch (error) {
+    console.error('Error fetching profile job seeker:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+////////////////////////////////////////////////////////////////////////////////
 
 // Refresh token
 const refreshAccessToken = (req, res) => {
@@ -245,7 +358,10 @@ const refreshAccessToken = (req, res) => {
     console.error('Refresh Token Error:', error);
     return res.status(401).json({ error: 'Unauthorized' });
   }
-};const forgotPassword = async (req, res) => {
+};
+
+
+const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await UserModel.findOne({ email });
@@ -284,6 +400,7 @@ const refreshAccessToken = (req, res) => {
     return res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 };
+
 
 const resetPassword = async (req, res) => {
   try {
@@ -386,11 +503,7 @@ const getUsers = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send('Error retrieving users');
-  }
-
-
- 
-  
+  }  
 };
 
 const getUserCompany = async (req, res) => {
@@ -432,10 +545,176 @@ const createUserCompany = async (req, res) => {
   }
 };
 
-*/
+*/// userController.js
+
+const getUserCompanyProfile = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming you pass the user ID as a URL parameter
+
+    // Retrieve company profile from UserCompanyModel using the user ID
+    const userCompany = await UserCompanyModel.findOne({ userId });
+
+    if (!userCompany) {
+      return res.status(404).json({ error: 'Company profile not found' });
+    }
+
+    // Return the company profile data
+    res.status(200).json({ userCompany });
+  } catch (error) {
+    console.error('Error fetching company profile:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+//
+
+const getUserById = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming you pass the user ID as a URL parameter
+
+    // Retrieve user from UserModel using the user ID
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Return the user data
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error('Error fetching user by ID:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+const getAllJobSeekerProfiles = async (req, res) => {
+  try {
+    // Assuming you have a model named JobSeekerProfile
+    const profiles = await ProfileJobSeeker.find();
+    res.send(profiles);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving job seeker profiles');
+  }
+};
+
+
+const getProfileJobSeekerByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming the userId is passed as a parameter
+
+    // Find the profile by userId
+    const profile = await ProfileJobSeeker.findOne({ userId });
+
+    // Check if the profile exists
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Return the profile data
+    res.status(200).json({ profile });
+  } catch (error) {
+    console.error('Error fetching profile job seeker by userId:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+const getProfileCompanyById = async (req, res) => {
+  try {
+    const profileId = req.params.profileId; // Assuming the profileId is passed as a parameter
+
+    // Find the profile by profileId
+    const profile = await ProfileCompany.findOne({ _id: profileId });
+
+    // Check if the profile exists
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Return the profile data
+    res.status(200).json({ profile });
+  } catch (error) {
+    console.error('Error fetching profile company by ID:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+/*
+const updateProfileJobSeekerById = async (profileId, updates) => {
+  try {
+    // Find the profile job seeker by ID
+    const profile = await ProfileJobSeeker.findById(profileId);
+
+    // Check if the profile exists
+    if (!profile) {
+      throw new Error('Profile job seeker not found');
+    }
+
+    // Check if updates include name, password, or image
+    if (updates.name || updates.password || updates.image) {
+      // Update corresponding user with matching email
+      await UserModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
+    }
+
+    // Check if updates include name, lastname, password, birthdate, address, image, phone, or role_jobseeker
+    if (updates.name || updates.lastname || updates.password || updates.birthdate || updates.address || updates.image || updates.phone || updates.role_jobseeker) {
+      // Update corresponding job seeker with matching email
+      await JobSeekerModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
+    }
+
+    // Exclude _id field from updates
+    delete updates._id;
+
+    // Update profile job seeker
+    const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(profileId, { $set: updates }, { new: true });
+
+    return updatedProfileJobSeeker;
+  } catch (error) {
+    throw error;
+  }
+};*/
+const updateProfileJobSeekerById = async (profileId, updates) => {
+  try {
+    // Find the profile job seeker by ID
+    const profile = await ProfileJobSeeker.findById(profileId);
+
+    // Check if the profile exists
+    if (!profile) {
+      throw new Error('Profile job seeker not found');
+    }
+    const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(profileId, { $set: updates }, { new: true });
+    delete updates._id;
+
+    // Check if updates include name, password, or image
+    if (updates.name || updates.password || updates.image) {
+      // Update corresponding user with matching email
+      await UserModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
+    }
+
+    // Check if updates include name, lastname, password, birthdate, address, image, phone, or role_jobseeker
+    if (updates.name || updates.lastname || updates.password || updates.birthdate || updates.address || updates.image || updates.phone || updates.role_jobseeker) {
+      // Update corresponding job seeker with matching email
+      await JobSeekerModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
+    }
+    delete updates._id;
+
+    // Exclude _id field from updates
+
+    // Update profile job seeker
+
+    return updatedProfileJobSeeker;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 
 module.exports = {
-
+  getAllJobSeekerProfiles,
   registerUserCompany,
   loginUser,
   refreshAccessToken,
@@ -445,8 +724,12 @@ module.exports = {
   speedLimiter,
   registerUser,
   getUsers,
-  getUserCompany
- 
-  
-
+  getUserCompany,
+  getUserCompanyProfile,
+  getUserById,
+  getProfileJobSeekerById,
+  getProfileJobSeekerByUserId,
+  updateProfileJobSeekerById,
+  getProfileCompanyById,
+ // getAllProfileCompanies,
 };
