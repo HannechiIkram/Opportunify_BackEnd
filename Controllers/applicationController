@@ -15,7 +15,8 @@ async function getall(req, res) {
 }
 
 
-/*// la recherche par id
+// la recherche par id
+// la recherche par id
 async function getbyid(req, res) {
   try {
     const data = await Application.findById(req.params.id); // Corrected usage of Application model
@@ -23,7 +24,7 @@ async function getbyid(req, res) {
   } catch (err) {
     res.send(err);
   }
-}*/
+}
 
 // l'ajout d'une application
 async function add(req, res, next) {

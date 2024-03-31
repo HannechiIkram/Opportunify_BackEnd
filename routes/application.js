@@ -7,16 +7,21 @@ const applicationController = require("../Controllers/applicationController");
 const validate = require("../midill/validate");
 const application = require("../models/application");
 const nodemailer = require('nodemailer');
-const twilio = require('twilio');
 const UserJobSeeker = require('../models/user-jobseeker'); // Assurez-vous de corriger le chemin si nécessaire
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const JobOffer = require('../models/job_offer'); 
+
+
+
 
 const authMiddleware = require ('../midill/authMiddleware');
 
 
-const bodyParser = require("body-parser");
 // [READ] 
 router.get("/getall",authMiddleware, applicationController.getall);
 
+//get bel id 
 // [Add] 
 router.post("/new", validate, applicationController.add);
 
@@ -96,11 +101,9 @@ router.get("/search/date/:date", async function (req, res) {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
 });
-
-// POST route to handle form submission for applying to a job offer
 router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
-    const { email } = req.body; // Extract email from the request body
+    const { email, offerId } = req.body; // Extract necessary fields from the request body
     const cv = req.files['cv'][0].path;
     const coverLetter = req.files['coverLetter'][0].path;
     const applicationDate = new Date();
@@ -112,37 +115,61 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
     // If the job seeker doesn't exist, create a new one
     if (!jobSeeker) {
       jobSeeker = new UserJobSeeker({
+      
         role_jobseeker: "student" // You might adjust this value based on your requirements
         // Add other fields as needed
       });
       await jobSeeker.save();
     }
 
+    // Check if the offerId is valid
+    if (!mongoose.Types.ObjectId.isValid(offerId)) {
+      return res.status(400).json({ error: 'Invalid offer ID' });
+    }
+
+    // Find the job offer by its ID
+    const jobOffer = await JobOffer.findById(offerId);
+    if (!jobOffer) {
+      return res.status(404).json({ error: 'Job offer not found' });
+    }
+
+    // Check if the application deadline has passed
+    const currentDate = new Date();
+    const deadline = new Date(jobOffer.deadline);
+    if (currentDate > deadline) {
+      return res.status(400).json({ error: 'Application deadline has passed' });
+    }
+
+    // Create a new application
     const newApplication = new Application({
+    
       cv,
       coverLetter,
       applicationDate,
       status,
+      job_offer: offerId,
       job_seeker: jobSeeker._id // Associate the application with the job seeker
     });
 
+    // Save the new application
     await newApplication.save();
 
     // Send email notification
-    // const mailOptions = {
-    //   from: 'opportunify@outlook.com',
-    //   to: req.body.email,
-    //   subject: 'Application Submitted Successfully',
-    //   text: 'Your application has been submitted successfully. We will review it shortly.'
-    // };
+    const mailOptions = {
+      from: 'opportunify@outlook.com',
+      to: email,
+      subject: 'Application Submitted Successfully',
+      text: 'Your application has been submitted successfully. We will review it shortly.'
+    };
 
-    // transporter.sendMail(mailOptions, (error, info) => {
-    //   if (error) {
-    //     console.error('Error sending email notification:', error);
-    //   } else {
-    //     console.log('Email notification sent:', info.response);
-    //   }
-    // });
+    // Send email notification
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email notification:', error);
+      } else {
+        console.log('Email notification sent:', info.response);
+      }
+    });
 
     res.status(201).json({ message: 'Application submitted successfully' });
   } catch (error) {
@@ -151,38 +178,41 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
   }
 });
 
+//router.get("/get/:id", applicationController.getbyid);
+
 // GET route to retrieve application details by ID
 router.get('/get/:id', async (req, res) => {
-    try {
-        const applicationId = req.params.id;
+  try {
+    const applicationId = req.params.id;
 
-        // Find the application by ID and populate the 'candidate' field with candidate details
-        const foundApplication = await Application.findById(applicationId);
+    // Find the application by ID and populate the 'job_offer' field with job offer details
+    const foundApplication = await Application.findById(applicationId).populate('job_offer');
 
-        if (!foundApplication) {
-            return res.status(404).json({ error: 'Application not found' });
-        }
-
-        // Extract relevant information from the application object
-        const { userName, userSurname, email, phone, education, cv, coverLetter, applicationDate, status } = foundApplication;
-
-        // Return application details along with candidate details
-        res.json({
-          applicationId,
-            userName,
-            userSurname,
-            email,
-            phone,
-            education,
-            cv,
-            coverLetter,
-            applicationDate,
-            status,
-        });
-    } catch (error) {
-        console.error('Error fetching application details:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+    if (!foundApplication) {
+      return res.status(404).json({ error: 'Application not found' });
     }
+
+   
+    const { userName, userSurname, email, phone, education, cv, coverLetter, applicationDate, status } = foundApplication;
+
+
+    res.json({
+      applicationId,
+      userName,
+      userSurname,
+      email,
+      phone,
+      education,
+      cv,
+      coverLetter,
+      applicationDate,
+      status,
+      job_offer: foundApplication.job_offer 
+    });
+  } catch (error) {
+    console.error('Error fetching application details:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 // Ajouter les routes pour accepter et refuser une application
 router.put("/accept/:id",authMiddleware, applicationController.acceptApplication);

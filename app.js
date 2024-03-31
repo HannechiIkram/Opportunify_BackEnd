@@ -17,6 +17,7 @@ require('dotenv').config();
 const indexRouter = require('./routes/index');
 const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
+const evaluationRouter = require('./routes/evaluations');
 const app = express();
 
 //const crypto = require('crypto');
@@ -66,7 +67,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 const jobOfferRouter = require("./routes/job_offer");
+
 app.use("/job_offer", jobOfferRouter);
+app.use('/evaluations', evaluationRouter)
 
 //les middleware eli teb3in jsonwebtoken
 app.use('/applications', applicationRouter);

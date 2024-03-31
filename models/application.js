@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const JobOffer = require("./job_offer"); 
 
 const applicationSchema = new Schema({
   jobField: String,
-  applicationDate: Date,
+  applicationDate: { type: Date, default: Date.now },
   status: {
     type: String,
     enum: ['Under review', 'Shortlisted', 'Rejected']
@@ -14,7 +15,12 @@ const applicationSchema = new Schema({
 job_seeker: { type: Schema.Types.ObjectId, ref: 'UserJobSeeker' },
 
   accepted: { type: Boolean, default: false },
-    rejected: { type: Boolean, default: false }
+    rejected: { type: Boolean, default: false },
+
+  job_offer: {
+    type: Schema.Types.ObjectId,
+    ref: 'job_offer'
+  },
 });
 
 module.exports = mongoose.model("Application", applicationSchema);

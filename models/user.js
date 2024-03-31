@@ -1,4 +1,4 @@
-
+ 
 const mongoose = require('mongoose');
 const { rolePermissions } = require('../helpers/permissions');
 
@@ -20,8 +20,7 @@ email: { type: String, required: true },
     select: false 
   },
 
-  resetToken: String,
-  resetTokenExpires: Date,
+  
   phone: Number,
   description: String,
   accepted: { type: Boolean, default: true },
@@ -34,6 +33,8 @@ email: { type: String, required: true },
   },
   phoneNumber: String,
   isBlocked: { type: Boolean, default: false },
+  resetToken: String,
+  resetTokenExpires: Date,
 });
 
 // Add permissions based on user role

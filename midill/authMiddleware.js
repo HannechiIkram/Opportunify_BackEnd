@@ -7,6 +7,13 @@ const authMiddleware = (req, res, next) => {
 
     const accessToken = req.headers.authorization; // Extract access token from request headers
 
+
+//const jwtSecret = crypto.randomBytes(32).toString('base64');
+//console.log(jwtSecret);
+
+  //  const accessToken = req.headers.authorization; // Extract access token from request headers
+
+    // Check if access token exists and is in the correct format
     if (!accessToken || typeof accessToken !== 'string') {
         return res.status(401).json({ error: 'Invalid access token format' });
     }
@@ -16,7 +23,8 @@ const authMiddleware = (req, res, next) => {
 
     // Verify if the token has three parts
     if (tokenParts.length !== 2) {
-        return res.status(401).json({ error: 'Token must have three parts' });
+      //  return res.status(401).json({ error: 'Token must have three parts' });
+        return res.status(401).json({ error: 'Invalid access token format' });
     }
 
     const token = tokenParts[1]; // Extract the actual token part
@@ -29,7 +37,13 @@ const authMiddleware = (req, res, next) => {
         next();
     } catch (error) {
         // Token verification failed (e.g., invalid token)
-        return res.status(401).json({ error: 'Invalid or expired token' });
+    //    return res.status(401).json({ error: 'Invalid or expired token' });
+  //  }
+//};
+
+//module.exports = authMiddleware;
+
+        return res.status(401).json({ error: 'Invalid access token' });
     }
 };
 
