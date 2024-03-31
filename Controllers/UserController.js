@@ -899,5 +899,4 @@ module.exports = {
   getProfileJobSeekerByUserId,
   updateProfileJobSeekerById,
   getProfileCompanyById,
- // getAllProfileCompanies,
 };

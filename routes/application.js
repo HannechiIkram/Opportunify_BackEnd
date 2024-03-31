@@ -100,12 +100,21 @@ router.get("/search/date/:date", async function (req, res) {
     tls: {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
-});
-router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+});router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
     const { email, offerId } = req.body; // Extract necessary fields from the request body
-    const cv = req.files['cv'][0].path;
-    const coverLetter = req.files['coverLetter'][0].path;
+    const cvFile = req.files['cv'];
+    if (!cvFile || !cvFile[0]) {
+      return res.status(400).json({ error: 'CV file not provided' });
+    }
+    const cv = cvFile[0].path;
+    
+    const coverLetterFile = req.files['coverLetter'];
+    if (!coverLetterFile || !coverLetterFile[0]) {
+      return res.status(400).json({ error: 'Cover letter file not provided' });
+    }
+    const coverLetter = coverLetterFile[0].path; // Extract path of the cover letter file
+
     const applicationDate = new Date();
     const status = "Under review";
 
@@ -115,7 +124,6 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
     // If the job seeker doesn't exist, create a new one
     if (!jobSeeker) {
       jobSeeker = new UserJobSeeker({
-      
         role_jobseeker: "student" // You might adjust this value based on your requirements
         // Add other fields as needed
       });
@@ -142,7 +150,6 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
 
     // Create a new application
     const newApplication = new Application({
-    
       cv,
       coverLetter,
       applicationDate,
@@ -178,10 +185,8 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
   }
 });
 
-//router.get("/get/:id", applicationController.getbyid);
-
 // GET route to retrieve application details by ID
-router.get('/get/:id', async (req, res) => {
+router.get('/get/:id', authMiddleware,async (req, res) => {
   try {
     const applicationId = req.params.id;
 
@@ -193,16 +198,11 @@ router.get('/get/:id', async (req, res) => {
     }
 
    
-    const { userName, userSurname, email, phone, education, cv, coverLetter, applicationDate, status } = foundApplication;
+    const {  cv, coverLetter, applicationDate, status } = foundApplication;
 
 
     res.json({
-      applicationId,
-      userName,
-      userSurname,
-      email,
-      phone,
-      education,
+     
       cv,
       coverLetter,
       applicationDate,
