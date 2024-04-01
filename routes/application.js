@@ -26,18 +26,18 @@ router.get("/getall",authMiddleware, applicationController.getall);
 router.post("/new", validate, applicationController.add);
 
 // [UPDATE]
-router.put("/update/:id", async function (req, res) {
-    try {
-      const updatedApplication = await Application.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!updatedApplication) {
-        return res.status(404).json({ error: 'Application not found' });
-      }
-      res.status(200).json(updatedApplication);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+router.put("/update/:id", authMiddleware, async function (req, res) {
+  try {
+    const updatedApplication = await Application.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedApplication) {
+      return res.status(404).json({ error: 'Application not found' });
     }
-  });
+    res.status(200).json(updatedApplication);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 //  [DELETE] 
 router.delete("/delete/:id",authMiddleware, async function (req, res) {
@@ -56,7 +56,7 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
   
 
   // Search based on the date of the application
-router.get("/search/date/:date", async function (req, res) {
+router.get("/search/date/:date", authMiddleware, async function (req, res) {
     try {
       const date = new Date(req.params.date);
       const applications = await Application.find({ applicationDate: date });
@@ -100,7 +100,8 @@ router.get("/search/date/:date", async function (req, res) {
     tls: {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
-});router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+});
+router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
     const { email, offerId } = req.body; // Extract necessary fields from the request body
     const cvFile = req.files['cv'];
