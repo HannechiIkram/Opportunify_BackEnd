@@ -31,7 +31,7 @@ const registerUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await UserModel.findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: 'Email is already taken' });
     }
@@ -40,7 +40,7 @@ const registerUser = async (req, res) => {
     const hashedPassword = await hashPassword(password);
 
     // Create new user
-    const newUser = await UserModel.create({
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
@@ -279,7 +279,7 @@ const loginUser = async (req, res) => {
     const accessToken = jwt.sign(
       { email: user.email, id: user._id, name: user.name, jobSeekerId, profileId,company_profileId  },
       process.env.JWT_SECRET,
-      { expiresIn: '60m' } // Adjust the expiration time as needed
+      { expiresIn: '180m' } // Adjust the expiration time as needed
     // Adjust the expiration time as needed
     );
 

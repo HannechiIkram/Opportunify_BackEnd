@@ -88,7 +88,7 @@ router.get('/getUser/:userId', getUserById);
 
 //
 //router.post('/registercompany',  createUserCompany)
-router.get('/',authMiddleware,getUsers);
+router.get('/',getUsers);
 router.get('/company',authMiddleware, getUserCompany);
 router.post('/registerCompany', registerUserCompany)
 router.post('/login', loginLimiter, speedLimiter, loginUser)

@@ -4,6 +4,8 @@ const userController = require("../Controllers/job-offerController");
 const authMiddleware = require ('../midill/authMiddleware');
 const job_offerModel = require("../models/job_offer");
 const accessControl = require('../midill/accescontrol');
+const User = require('../models/user');
+const nodemailer = require('nodemailer');
 
 const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
@@ -55,6 +57,38 @@ router.get("/get/:id",authMiddleware, userController.getbyid);
 //router.post("/add", userController.add);
 router.post('/add', authMiddleware, userController.add);
 
+
+
+
+router.post('/send',authMiddleware, async (req, res) => {
+  try {
+    const { recipientEmail, message } = req.body;
+
+    // Create a nodemailer transporter configured for Outlook SMTP
+    let transporter = nodemailer.createTransport({
+      service: 'Outlook', // Use Outlook service
+      auth: {
+        user: 'ikram.hannechi@esprit.tn', // Your Outlook email
+        pass: 'Ih123456**' // Your Outlook password
+      }
+    });
+
+    // Send mail with defined transport object
+    let info = await transporter.sendMail({
+      from: '"admin" ikram.hannechi@esprit.tn',
+      to: recipientEmail,
+      subject: 'Job Offer Details',
+      text: message
+    });
+
+    console.log('Message sent: %s', info.messageId);
+
+    res.status(200).json({ message: 'Email sent successfully' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 module.exports = router;
