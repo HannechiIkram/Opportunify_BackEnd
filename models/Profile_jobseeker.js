@@ -18,10 +18,10 @@ const profileJobSeekerSchema = new Schema({
     enum: ['student', 'alumni', 'staff']
   },
   password: { type: String, required: true },
-  //facebook_url:String,
-  //instagram_url:String,
-  //git_url:String,
-  //description:String,
+  facebook_url:String,
+   instagram_url:String,
+   git_url:String,
+  description:String,
   image: String 
 
 });
