@@ -8,16 +8,7 @@ pipeline {
                 }
             }
         }
-        stage('Funding dependencies') {
-            steps {
-                script {
-                    sh('npm fund ')
-                }
-            }
-        }
-        
-
-
+       
         stage('Unit Test') {
             steps {
                 script {
@@ -30,7 +21,7 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    sh('npm start')
+                    sh('npm run build-dev')
                 }
             }
         }
