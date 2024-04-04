@@ -23,7 +23,18 @@ async function getall(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-
+///samar
+/// liste des offres pour homepage (maghir login)
+async function getoffershomepage(req, res) {
+  try {
+    const data = await job_offer.find();
+    res.send(data);
+    }    
+   catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
 
 //la recherche par id
 
@@ -118,4 +129,4 @@ async function add(req, res) {
 }
 
 
-module.exports = { getall, getbyid , add };
+module.exports = { getall, getbyid , add ,getoffershomepage};
