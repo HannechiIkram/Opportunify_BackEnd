@@ -320,7 +320,7 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 //////////////////////  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
 ////////////////////// 
 //////////////////////
-router.post("/createUser", upload.single("image"), createUser);
+router.post("/createUser",authMiddleware, upload.single("image"), createUser);
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const userData = req.body; // Updated user data sent in the request body

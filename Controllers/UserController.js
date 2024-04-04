@@ -443,7 +443,7 @@ const forgotPassword = async (req, res) => {
     const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: "oumaima.zanteni@esprit.tn",
+      from: "ikram.hannechi@esprit.tn",
       to: email,
       subject: "Réinitialisation de mot de passe",
       text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,
@@ -792,46 +792,37 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     throw error;
   }
 };
-
-///////
-
 const createUser = async (req, res) => {
-  // const userId = req.user._id; // ID de l'utilisateur connecté
-
   try {
     const { name, email, password, role } = req.body;
     const imageUrl = req.file ? req.file.path : ""; // If req.file is undefined, set imageUrl to an empty string
 
     // Validate input
-
-    // Check if role is provided in the request body
-    if (!req.body.role_jobseeker) {
-      return res.status(400).json({ message: "Role is required" });
-    }
-
-    // Check if the provided role is 'admin'
-    if (req.body.role !== "admin") {
-      return res.status(400).json({ message: "Only 'admin' role is allowed" });
-    }
     if (!email || !password || !role || !name) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
     // Check if user already exists
-    const existingUser = await UserModel.findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already taken" });
+    }
+
+    // Check if the provided role is valid
+    if (role !== "admin" && role !== "user") {
+      return res.status(400).json({ error: "Invalid role. Only 'admin' or 'user' roles are allowed" });
     }
 
     // Hash the password
     const hashedPassword = await hashPassword(password);
 
     // Create new user
-    const newUser = await UserModel.create({
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
       role,
+      imageUrl, // Add imageUrl to the user object
     });
 
     // Return response
@@ -845,6 +836,8 @@ const createUser = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
 //
 /*const modifyUser = async (req, res) => {
   try {
