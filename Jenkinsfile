@@ -4,6 +4,7 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 script {
+                    sh 'npm install webpack-cli --save-dev'
                     sh 'npm install'
                     
                 }
