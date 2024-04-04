@@ -18,6 +18,10 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
+                    // Install the accescontrol module
+                    sh 'npm install ../Opportunify_BackEnd/midill/accescontrol'
+                    
+                    // Start the application
                     sh 'node ./bin/www'
                 }
             }
