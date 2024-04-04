@@ -171,6 +171,7 @@ router.get('/auth/facebook/callback', passport.authenticate('facebook', {
 
 
 
+
 router.get("/search/company/:name", async function (req, res) {
   try {
     const name = req.params.name;

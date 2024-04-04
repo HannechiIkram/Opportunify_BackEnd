@@ -14,8 +14,6 @@ async function getall(req, res) {
   }
 }
 
-
-// la recherche par id
 // la recherche par id
 async function getbyid(req, res) {
   try {

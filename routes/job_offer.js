@@ -38,17 +38,16 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
 
 
     // Search based on the title
-    router.get("/search/title/:title",authMiddleware, async function (req, res) {
-        try {
+    router.get("/search/title/:title", authMiddleware, async function (req, res) {
+      try {
           const title = req.params.title;
           const joboffers = await job_offerModel.find({ title });
           res.json(joboffers);
-        } catch (err) {
+      } catch (err) {
           console.error(err);
           res.status(500).json({ error: 'Internal Server Error' });
-        }
-      });
-
+      }
+  });
 router.get("/getall",authMiddleware, userController.getall);
 
 router.get("/get/:id",authMiddleware, userController.getbyid);
