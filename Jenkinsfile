@@ -18,7 +18,7 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    sh './node_modules/.bin/nodemon ./bin/www'
+                    sh 'node ./bin/www'
                 }
             }
         }
