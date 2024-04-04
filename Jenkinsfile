@@ -7,7 +7,7 @@ pipeline {
                     // Install project dependencies
                     sh 'npm install'
                     // Fix any vulnerabilities found during audit
-                    sh 'npm audit fix --force'
+                    sh 'npm audit fix '
                     // Check for any funding opportunities for project dependencies
                     sh 'npm fund'
                 }
