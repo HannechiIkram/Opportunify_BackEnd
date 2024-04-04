@@ -3,13 +3,11 @@ pipeline {
     stages {
         stage('Install dependencies') {
             steps {
-                script {
+                
                     // Install project dependencies
-                    sh 'npm install'
-                    // Fix any vulnerabilities found during audit
-                    sh 'npm audit fix '
-                    // Check for any funding opportunities for project dependencies
-                    sh 'npm fund'
+                   script {
+         sh('npm install')
+        }
                 }
             }
         }
