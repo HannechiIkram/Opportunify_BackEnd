@@ -16,13 +16,7 @@ pipeline {
             }
         }
         
-        stage('Fix dependencies') {
-            steps {
-                script {
-                    sh('npm audit fix --force')
-                }
-            }
-        }
+
 
         stage('Unit Test') {
             steps {
