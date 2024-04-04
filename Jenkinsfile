@@ -6,6 +6,7 @@ pipeline {
                 script {
                     
                     sh 'npm install'
+                    sh 'npm fund'
                     
                 }
             }
