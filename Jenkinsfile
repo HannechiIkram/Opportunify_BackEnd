@@ -18,7 +18,7 @@ script {
 stage('Build application') {
 steps{
 script {
-  echo "aa"
+  sh( 'npm start' )
 }
 }
 }
