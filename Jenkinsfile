@@ -4,7 +4,6 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 script {
-                    // Install project dependencies
                     sh 'npm install'
                 }
             }
@@ -12,19 +11,16 @@ pipeline {
         stage('Unit Test') {
             steps {
                 script {
-                    // Perform unit tests (replace 'echo "aa"' with actual test commands)
-                    echo "aaa"
+                    echo "Run your unit tests here"
                 }
             }
         }
         stage('Build application') {
             steps {
                 script {
-                    // Start the application
-                    sh 'npm start'
+                    sh './node_modules/.bin/nodemon ./bin/www'
                 }
             }
         }
     }
 }
-
