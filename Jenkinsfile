@@ -4,8 +4,11 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 script {
+                    // Install project dependencies
                     sh 'npm install'
+                    // Fix any vulnerabilities found during audit
                     sh 'npm audit fix --force'
+                    // Check for any funding opportunities for project dependencies
                     sh 'npm fund'
                 }
             }
@@ -13,15 +16,15 @@ pipeline {
         stage('Unit Test') {
             steps {
                 script {
-                    echo "Run your unit tests here"
+                    // You can run your unit tests here
+                    echo "Running unit tests..."
                 }
             }
         }
         stage('Build application') {
             steps {
                 script {
-                    
-                    
+                    // Start the application
                     sh 'node ./bin/www'
                 }
             }
