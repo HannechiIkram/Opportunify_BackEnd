@@ -26,10 +26,7 @@ const app = express();
 require("dotenv").config(); // Load environment variables from .env file
 
 
-const uri =
-  process.env.NODE_ENV === "test"
-    ? process.env.MONGO_URI
-    : "mongodb://root:example@db:27017/pi";
+const uri =process.env.MONGO_URI || mongoconnection.url;
 
 const connectDB = async () => {
   try {
