@@ -2,15 +2,14 @@ pipeline {
     agent any
     stages {
         stage('Install dependencies') {
-            steps {
-                
-                    // Install project dependencies
-                   script {
+      steps{
+        
+        script {
          sh('npm install')
         }
-                }
-            }
-        }
+      }
+    }
+
         stage('Unit Test') {
             steps {
                 script {
@@ -23,7 +22,7 @@ pipeline {
             steps {
                 script {
                     // Install the required module
-                    sh 'npm install ../Opportunify_BackEnd/midill/accescontrol'
+                    
                     // Start the application
                     sh 'node ./bin/www'
                 }
