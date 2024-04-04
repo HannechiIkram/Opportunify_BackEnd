@@ -1,6 +1,14 @@
 pipeline {
     agent any
-   
+    stages {
+        stage('Install dependencies') {
+            steps {
+                script {
+                    
+                echo 'installation done'
+                }
+            }
+        }
        
         stage('Unit Test') {
             steps {
