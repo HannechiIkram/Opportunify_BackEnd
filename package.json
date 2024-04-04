@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www",
-    "build-dev": "webpack --config webpack.dev.js --mode development"
+    "dev":"nodemon ./bin/www"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
