@@ -23,7 +23,7 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    sh('sudo npm start')
+                    sh('npm start')
                 }
             }
         }
