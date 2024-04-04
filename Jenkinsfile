@@ -1,26 +1,30 @@
-pipeline{
-agent any
-stages {
-stage('Install dependencies') {
-steps{
-script {
-sh('npm install')
+pipeline {
+    agent any
+    stages {
+        stage('Install dependencies') {
+            steps {
+                script {
+                    // Install project dependencies
+                    sh 'npm install'
+                }
+            }
+        }
+        stage('Unit Test') {
+            steps {
+                script {
+                    // Perform unit tests (replace 'echo "aa"' with actual test commands)
+                    echo "aaa"
+                }
+            }
+        }
+        stage('Build application') {
+            steps {
+                script {
+                    // Start the application
+                    sh 'npm start'
+                }
+            }
+        }
+    }
 }
-}
-}
-stage('Unit Test') {
-steps{
-script {
-        echo "aa"
-}
-}
-}
-stage('Build application') {
-steps{
-script {
-  sh( 'npm start' )
-}
-}
-}
-}
-}
+
