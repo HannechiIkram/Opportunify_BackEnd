@@ -37,6 +37,8 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+////samar
+router.get("/getoffershomepage",userController.getoffershomepage);
 
 
     // Search based on the title
