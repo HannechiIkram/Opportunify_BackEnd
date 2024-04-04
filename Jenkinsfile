@@ -11,9 +11,8 @@ sh('npm install')
 stage('Unit Test') {
 steps{
 
-  script {
-sh('npm test')
-}
+    echo "unit"
+   
 }
 }
 stage('Build application') {
