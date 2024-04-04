@@ -21,11 +21,8 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    // Install the required module
-                    
-                    // Start the application
-                    sh 'node ./bin/www'
-                }
+         sh('npm run build-dev')
+        }
             }
         }
     }
