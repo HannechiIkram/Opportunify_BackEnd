@@ -1,16 +1,6 @@
 pipeline {
     agent any
-    stages {
-        stage('Install dependencies') {
-            steps {
-                script {
-                    
-                    sh 'npm install'
-                    sh 'npm fund'
-                    
-                }
-            }
-        }
+   
        
         stage('Unit Test') {
             steps {
