@@ -3,7 +3,10 @@ const Schema = mongoose.Schema;
 const JobOffer = require("./job_offer"); 
 
 const applicationSchema = new Schema({
-  jobField: String,
+  motivation: String,
+  email:String,
+  disponibilite:String,
+  salaire : String,
   applicationDate: { type: Date, default: Date.now },
   status: {
     type: String,
