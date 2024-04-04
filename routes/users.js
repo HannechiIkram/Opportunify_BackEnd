@@ -44,7 +44,6 @@ router.use(
 )
 router.post('/logout',authMiddleware, logoutUser);
 
-////
 router.get('/:id',authMiddleware, getUserById);
 
 
@@ -78,7 +77,7 @@ router.put('/updateProfileJobSeekerById/:profileid', async (req, res) => {
   }
 });
 
-router.get('/getAllJobSeekerProfiles', getAllJobSeekerProfiles);
+router.get('/getAllJobSeekerProfiles',getAllJobSeekerProfiles);
 
 
 
@@ -95,50 +94,6 @@ router.post('/login', loginLimiter, speedLimiter, loginUser)
 router.post('/refresh-token', refreshAccessToken)
 router.post('/forgot-password', forgotPassword)
 router.post('/reset-password', resetPassword)
-
-///////////////////////////////////////
-// [UPDATE]
-// Update profile job seeker by ID
-/*
-router.put("/update/:id", async (req, res) => {
-  try {
-    const profileId = req.params.id;
-    const updates = req.body; // The updates to be applied
-
-    // Find the profile job seeker by ID
-    const profile = await profileJobSeekerModel.findById(profileId);
-
-    // Check if the profile exists
-    if (!profile) {
-      return res.status(404).json({ error: 'Profile job seeker not found' });
-    }
-
-    // Update the profile job seeker
-    await profileJobSeekerModel.findByIdAndUpdate(profileId, updates);
-
-    // Update corresponding job seeker
-    await JobSeeker.findOneAndUpdate({ email: profile.email }, updates);
-
-    // If the updates include name or password, update the corresponding user
-    if (updates.name || updates.password) {
-      const userUpdates = {};
-      if (updates.name) userUpdates.name = updates.name;
-      if (updates.password) userUpdates.password = updates.password;
-
-      await User.findOneAndUpdate({ email: profile.email }, userUpdates);
-    }
-
-    res.status(200).json({ message: 'Profile job seeker updated successfully' });
-  } catch (error) {
-    console.error('Error updating profile job seeker:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-*/
-
-//////////////////////////
-
-
 
 
 
@@ -206,10 +161,13 @@ router.get('/dashboard',authMiddleware, isAdmin, (req, res) => {
   /*
   router.get('/applications', isCompany, (req, res) => {
     // This route can only be accessed by company users
-  });*:
-  
+  });*: 
 
 /*
+
+
+
+
 
 //Instagram authentication route
 router.get('/auth/instagram', passport.authenticate('instagram'));
@@ -250,6 +208,58 @@ router.get('/auth/linkedin/callback',
     res.redirect('/');
   }
 );*/
+
+router.put('/profileJobSeeker_description/:profileId', async (req, res) => {
+  try {
+    const profileId = req.params.profileId;
+    const { description } = req.body;
+
+    // Find the profile job seeker by _id
+    const profileJobSeeker = await profileJobSeekerModel.findById(profileId);
+
+    if (!profileJobSeeker) {
+      return res.status(404).json({ error: 'Profile job seeker not found' });
+    }
+
+    // Update the description field
+    profileJobSeeker.description = description;
+
+    // Save the updated profile job seeker
+    await profileJobSeeker.save();
+
+    return res.status(200).json({ message: 'Description added successfully', profileJobSeeker });
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.put('/profileJobSeeker_git/:profileId', async (req, res) => {
+  try {
+    const profileId = req.params.profileId;
+    const { git_url } = req.body; // Utilisez git_url ici
+
+    // Find the profile job seeker by _id
+    const profileJobSeeker = await profileJobSeekerModel.findById(profileId);
+
+    if (!profileJobSeeker) {
+      return res.status(404).json({ error: 'Profile job seeker not found' });
+    }
+
+    // Update the Git URL field avec git_url
+    profileJobSeeker.git_url = git_url; // Utilisez git_url ici
+
+    // Save the updated profile job seeker
+    await profileJobSeeker.save();
+
+    return res.status(200).json({ message: 'Git URL added successfully', profileJobSeeker });
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 // Configure multer for handling file uploads
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
@@ -285,7 +295,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 //////////////////////  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
-///////////////////////////
+////////////////////// 
 //////////////////////
 router.post('/createUser',authMiddleware, upload.single('image'), createUser);
 router.put('/:id', async (req, res) => {
