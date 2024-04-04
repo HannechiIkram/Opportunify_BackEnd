@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www",
-    "dev":"nodemon ./bin/www"
+    "build-dev": "node ./bin/www"
+    
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",

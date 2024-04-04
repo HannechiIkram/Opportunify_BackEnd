@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const statusController = require("../controllers/statusController");
+const statusController = require("../Controllers/statusController");
 
 // Route to create a new status
 router.post("/", statusController.createStatus);
