@@ -23,21 +23,27 @@ const app = express();
 //console.log(randomHexString);
 
 // Connexion à la base de données MongoDB avec Mongoose
-mongoose
-  .connect(
-    mongoconnection.url
-    ///no need for these
-    /*{
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }*/
-  )
-  .then(() => {
-    console.log("Connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+require("dotenv").config(); // Load environment variables from .env file
+
+
+const uri =
+  process.env.NODE_ENV === "test"
+    ? process.env.MONGO_URI
+    : "mongodb://root:example@db:27017/pi";
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("MongoDB Connected");
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+};
+connectDB();
 
 app.use(
   cors({
