@@ -8,6 +8,13 @@ pipeline {
                 }
             }
         }
+        stage('Funding dependencies') {
+            steps {
+                script {
+                    sh('npm fund ')
+                }
+            }
+        }
         
         stage('Fix dependencies') {
             steps {
