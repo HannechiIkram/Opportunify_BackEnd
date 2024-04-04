@@ -5,7 +5,7 @@ pipeline {
             steps {
                 script {
                     
-                echo 'installation done'
+                echo 'npm install'
                 }
             }
         }
