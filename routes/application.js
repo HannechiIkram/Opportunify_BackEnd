@@ -26,18 +26,41 @@ router.get("/getall",authMiddleware, applicationController.getall);
 router.post("/new", validate, applicationController.add);
 
 // [UPDATE]
-router.put("/update/:id", async function (req, res) {
-    try {
-      const updatedApplication = await Application.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!updatedApplication) {
-        return res.status(404).json({ error: 'Application not found' });
-      }
-      res.status(200).json(updatedApplication);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+router.put("/update/:id", authMiddleware, async function (req, res) {
+  try {
+    console.log("Received PUT request to update application:", req.body); // Affiche les données reçues dans la requête PUT
+    const applicationBeforeUpdate = await Application.findById(req.params.id);
+    if (!applicationBeforeUpdate) {
+      return res.status(404).json({ error: 'Application not found' });
     }
-  });
+
+    // Compare les données avant et après la mise à jour pour afficher les changements
+    const changes = {};
+    for (const key in req.body) {
+      if (applicationBeforeUpdate[key] !== req.body[key]) {
+        changes[key] = {
+          oldValue: applicationBeforeUpdate[key],
+          newValue: req.body[key]
+        };
+      }
+    }
+
+    const updatedApplication = await Application.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    console.log("Updated application:", updatedApplication); // Affiche les données mises à jour
+
+    if (Object.keys(changes).length > 0) {
+      console.log("Changes:", changes); // Affiche les changements effectués
+    } else {
+      console.log("No changes detected.");
+    }
+
+    res.status(200).json(updatedApplication);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 //  [DELETE] 
 router.delete("/delete/:id",authMiddleware, async function (req, res) {
@@ -66,21 +89,10 @@ router.get("/search/date/:date", async function (req, res) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  
-  // Search based on the jobField
-  router.get("/search/jobField/:jobField", async function (req, res) {
-    try {
-      const jobField = req.params.jobField;
-      const applications = await Application.find({ jobField });
-      res.json(applications);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
+
   
   // Search based on the status
-  router.get("/search/status/:status", async function (req, res) {
+  router.get("/search/status/:status",async function (req, res) {
     try {
       const status = req.params.status;
       const applications = await Application.find({ status });
@@ -100,9 +112,10 @@ router.get("/search/date/:date", async function (req, res) {
     tls: {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
-});router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+});
+router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
-    const { email, offerId } = req.body; // Extract necessary fields from the request body
+    const { email, offerId ,motivation,disponibilite, salaire} = req.body; 
     const cvFile = req.files['cv'];
     if (!cvFile || !cvFile[0]) {
       return res.status(400).json({ error: 'CV file not provided' });
@@ -117,7 +130,7 @@ router.get("/search/date/:date", async function (req, res) {
 
     const applicationDate = new Date();
     const status = "Under review";
-
+    
     // Check if the job seeker already exists
     let jobSeeker = await UserJobSeeker.findOne({ email });
     
@@ -154,6 +167,10 @@ router.get("/search/date/:date", async function (req, res) {
       coverLetter,
       applicationDate,
       status,
+      email,
+      motivation,
+      disponibilite,
+      salaire,
       job_offer: offerId,
       job_seeker: jobSeeker._id // Associate the application with the job seeker
     });
@@ -198,7 +215,7 @@ router.get('/get/:id', authMiddleware,async (req, res) => {
     }
 
    
-    const {  cv, coverLetter, applicationDate, status } = foundApplication;
+    const {  cv, coverLetter, applicationDate, status, motivation , salaire , disponibilite, email } = foundApplication;
 
 
     res.json({
@@ -207,6 +224,10 @@ router.get('/get/:id', authMiddleware,async (req, res) => {
       coverLetter,
       applicationDate,
       status,
+      email,
+      salaire ,
+      disponibilite,
+      motivation,
       job_offer: foundApplication.job_offer 
     });
   } catch (error) {
@@ -220,6 +241,72 @@ router.put("/reject/:id",authMiddleware, applicationController.rejectApplication
 
 
 router.get('/:id', applicationController.getById);
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+const fs = require('fs');
+
+const app = express();
+
+// ... other routes
+
+app.get('/download-cv/:applicationId', async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await Application.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    const cvPath = path.join(__dirname, 'ikramm', application.cv);
+
+    if (!fs.existsSync(cvPath)) {
+      return res.status(404).json({ message: 'CV file not found' });
+    }
+
+    res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
+    res.setHeader('Content-Disposition', `attachment; filename="${application.cv}"`); // Allow customization
+
+    const cvStream = fs.createReadStream(cvPath);
+    cvStream.pipe(res);
+  } catch (error) {
+    console.error('Error downloading CV:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+app.get('/download-cover-letter/:applicationId', async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await Application.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    const coverLetterPath = path.join(__dirname, 'ikramm', application.coverLetter);
+
+    if (!fs.existsSync(coverLetterPath)) {
+      return res.status(404).json({ message: 'Cover letter file not found' });
+    }
+
+    res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
+    res.setHeader('Content-Disposition', `attachment; filename="${application.coverLetter}"`); // Allow customization
+
+    const coverLetterStream = fs.createReadStream(coverLetterPath);
+    coverLetterStream.pipe(res);
+  } catch (error) {
+    console.error('Error downloading cover letter:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
+
 
 // Middleware to parse JSON requests
 router.use(bodyParser.json());

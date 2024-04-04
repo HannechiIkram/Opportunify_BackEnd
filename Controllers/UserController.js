@@ -240,6 +240,20 @@ const loginUser = async (req, res) => {
       const jobSeeker = await JobSeekerModel.findOne({ email });
       jobSeekerId = jobSeeker ? jobSeeker._id : null;
 
+
+
+ // Check if a profile already exists with the same email
+ const existingProfile = await ProfileJobSeeker.findOne({ email });
+
+ if (existingProfile) {
+   // If a profile exists, use its _id
+   profileId = existingProfile._id;
+ } else {
+
+
+
+
+
       // Create a profile for the job seeker
       const profile = new ProfileJobSeeker({
         userId: jobSeekerId,
@@ -258,7 +272,7 @@ const loginUser = async (req, res) => {
       // Save the profile to the database
       const savedProfile = await profile.save();
       profileId = savedProfile._id;
-    }
+    }}
 
     // Check if the user is a company
     let company_profileId = null;
@@ -272,16 +286,19 @@ const loginUser = async (req, res) => {
       if (!company) {
         return res.status(400).json({ error: "Company not found" });
       }
-
+ 
       // Create a profile for the company
       const profileCompany = new ProfileCompany({
         userCid: company._id, // Assuming the company model has '_id' as the primary key
         name: company.name,
         email: company.email,
         password: company.password,
-        matriculeFiscale: company.matriculeFiscale,
-        description: company.description,
-        address: company.address,
+        matriculeFiscale:company.matriculeFiscale,
+        description:company.description,
+        address:company.address,
+        phoneNumber:company.phoneNumber,
+        socialMedia:company.socialMedia,
+        domainOfActivity:company.domainOfActivity,
 
         // Add other fields from the company model as needed
       });

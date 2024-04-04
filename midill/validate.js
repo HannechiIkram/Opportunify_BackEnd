@@ -5,8 +5,11 @@ const validate = async (req, res, next) => {
   try {
     const schema = yup.object().shape({
       applicationId: yup.number().required(),
-      jobField: yup.string().required(),
+      motivation: yup.string().required(),
+      disponibilite: yup.string().required(),
+      salaire: yup.string().required(),
       applicationDate: yup.date().required(),
+      email: yup.string().email().required(),
       status: yup.string().oneOf(['Under review', 'Shortlisted', 'Rejected']).required()
     });
 
