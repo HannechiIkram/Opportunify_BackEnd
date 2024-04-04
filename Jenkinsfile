@@ -18,7 +18,9 @@ steps{
 stage('Build application') {
 steps{
 
-    echo"bulid"
+    script {
+sh('npm run build-dev')
+}
 }
 }
 }
