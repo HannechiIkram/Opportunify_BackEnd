@@ -79,7 +79,7 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
   
 
   // Search based on the date of the application
-router.get("/search/date/:date", async function (req, res) {
+router.get("/search/date/:date",authMiddleware, async function (req, res) {
     try {
       const date = new Date(req.params.date);
       const applications = await Application.find({ applicationDate: date });
@@ -92,7 +92,7 @@ router.get("/search/date/:date", async function (req, res) {
 
   
   // Search based on the status
-  router.get("/search/status/:status",async function (req, res) {
+  router.get("/search/status/:status",authMiddleware ,async function (req, res) {
     try {
       const status = req.params.status;
       const applications = await Application.find({ status });
@@ -128,7 +128,8 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
     }
     const coverLetter = coverLetterFile[0].path; // Extract path of the cover letter file
 
-    const applicationDate = new Date();
+    const applicationDate = new Date().toISOString().split('T')[0];
+
     const status = "Under review";
     
     // Check if the job seeker already exists
@@ -305,6 +306,27 @@ app.get('/download-cover-letter/:applicationId', async (req, res) => {
   }
 });
 
+router.get('/applications/search/joboffertitle',authMiddleware, async (req, res) => {
+  try {
+    const { jobOfferTitle } = req.query;
+
+    // Recherche dans la base de données en fonction du titre de l'offre d'emploi
+    const applications = await Application.find()
+      .populate({
+        path: 'job_offer',
+        match: { title: { $regex: jobOfferTitle, $options: 'i' } }
+      })
+      .exec();
+
+    // Filtrer les applications pour ne renvoyer que celles avec une offre d'emploi correspondante
+    const filteredApplications = applications.filter(application => application.job_offer !== null);
+
+    res.json(filteredApplications);
+  } catch (error) {
+    console.error('Error searching for applications by job offer title:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
