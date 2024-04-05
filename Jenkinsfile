@@ -24,7 +24,7 @@ pipeline {
         stage('Build application') {
             steps {
                 script {
-                    sh('npm run dev')
+                    sh('npm run build-dev')
                 }
             }
         }
