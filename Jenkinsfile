@@ -63,6 +63,18 @@ pipeline {
 					}
 				}
 			}
+
+	     stage('Run application ') {
+		steps{
+	          script {
+                        docker.withRegistry("http://"+registry, registryCredentials
+                        ) {
+                sh('docker pull $registry/nodemongoapp:6.0 ')
+                sh('docker-compose up -d ')
+                        }
+                }
+                }
+                }
 	   
     }
 }
