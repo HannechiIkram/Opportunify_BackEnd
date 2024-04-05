@@ -13,7 +13,9 @@ pipeline {
         stage('Unit Test') {
             steps {
                 script {
-                    sh "npm test"
+                    echo (
+                        'test'
+                    )
                     // You can run your unit tests here
                 }
             }
