@@ -8,10 +8,7 @@ const mongoose = require("mongoose");
 chai.use(chaiHttp);
 
 describe("Test", () => {
-  // Clear the Status collection before running the test
-  beforeEach(async () => {
-    await Status.deleteMany({});
-  });
+  
 
   it("should POST a valid status", (done) => {
     let status = {
