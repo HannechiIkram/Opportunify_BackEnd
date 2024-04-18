@@ -1,68 +1,93 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-const multer = require('multer');
+const multer = require("multer");
 
-
-
-const { comparePassword, hashPassword } = require('../helpers/auth');
+const { comparePassword, hashPassword } = require("../helpers/auth");
 
 const User = require("../models/user");
 const profileJobSeekerModel = require("../models/Profile_jobseeker");
-const  JobSeeker = require("../models/user-jobseeker")
-const crypto = require('crypto');
-const { acceptUserByEmail, rejectUserByEmail } = require('../Controllers/UserController');
+const JobSeeker = require("../models/user-jobseeker");
+const crypto = require("crypto");
+const {
+  acceptUserByEmail,
+  rejectUserByEmail,
+} = require("../Controllers/UserController");
 
-const passport = require('passport');
-const cors = require ('cors');
-const { createEvent,getAllEvents,getEventById,updateEvent,deleteEvent} = require('../Controllers/eventscont');
-const { createUser }=require('../Controllers/UserController');
-const authMiddleware = require ('../midill/authMiddleware');
-const { logoutUser } = require ('../Controllers/UserController')
-const { registerUserCompany, loginUser, speedLimiter, loginLimiter, refreshAccessToken, forgotPassword, resetPassword,getUserById,getProfileJobSeekerById} = require('../Controllers/UserController');
+const passport = require("passport");
+const cors = require("cors");
+const {
+  createEvent,
+  getAllEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+} = require("../Controllers/eventscont");
+const { createUser } = require("../Controllers/UserController");
+const authMiddleware = require("../midill/authMiddleware");
+const { logoutUser } = require("../Controllers/UserController");
+const {
+  registerUserCompany,
+  loginUser,
+  speedLimiter,
+  loginLimiter,
+  refreshAccessToken,
+  forgotPassword,
+  resetPassword,
+  getUserById,
+  getProfileJobSeekerById,
+} = require("../Controllers/UserController");
 
-const { registerUser,getAllJobSeekerProfiles,updateProfileJobSeekerById,getProfileCompanyById}=require('../Controllers/UserController');
-const {registerUserjobseeker,getUserJobSeekerProfile, getUserJobSeekers,getUserJobSeekerById}=require('../Controllers/User-jobseekerController');
+const {
+  registerUser,
+  getAllJobSeekerProfiles,
+  updateProfileJobSeekerById,
+  getProfileCompanyById,
+} = require("../Controllers/UserController");
+const {
+  registerUserjobseeker,
+  getUserJobSeekerProfile,
+  getUserJobSeekers,
+  getUserJobSeekerById,
+} = require("../Controllers/User-jobseekerController");
 
 //const {createUserCompany}=require('../Controllers/UserController');
-const { getUsers } = require('../Controllers/UserController')
-const { getUserCompany } = require('../Controllers/UserController')
-const accessControl = require('../midill/accescontrol');
+const { getUsers } = require("../Controllers/UserController");
+const { getUserCompany } = require("../Controllers/UserController");
+const accessControl = require("../midill/accescontrol");
 
-
-const authenticateUser= require('../midill/authMiddleware');
+const authenticateUser = require("../midill/authMiddleware");
 
 // Middleware for restricting access to certain routes
-const isAdmin = accessControl(['admin']);
-const isCompany = accessControl(['company']);
-const isJobSeeker = accessControl(['job_seeker']);
+const isAdmin = accessControl(["admin"]);
+const isCompany = accessControl(["company"]);
+const isJobSeeker = accessControl(["job_seeker"]);
 
 router.use(
   cors({
     credentials: true,
-    origin: 'http://localhost:5173'
+    origin: "http://localhost:5173",
   })
-)
-router.post('/logout',authMiddleware, logoutUser);
+);
+router.post("/logout", authMiddleware, logoutUser);
 
 router.get('/:id',authMiddleware, getUserById);
 
+router.post("/registeruser", registerUser);
 
-router.post('/registeruser',registerUser)
-
-router.post('/registerjobseeker',  registerUserjobseeker)
+router.post("/registerjobseeker", registerUserjobseeker);
 
 //
-router.get('/jobSeekerProfile', getUserJobSeekerProfile);
-router.get('/getProfileByUserId',getUserJobSeekerProfile);
+router.get("/jobSeekerProfile", getUserJobSeekerProfile);
+router.get("/getProfileByUserId", getUserJobSeekerProfile);
 
-router.get('/profile/:_id', getUserJobSeekerById);
+router.get("/profile/:_id", getUserJobSeekerById);
 
-router.get('/getProfileCompanyById/:profileId', getProfileCompanyById);
+router.get("/getProfileCompanyById/:profileId", getProfileCompanyById);
 
 //router.get('/getAllProfileCompanies',getAllProfileCompanies);
 
-router.get('/getProfileJobSeekerById/:profileId', getProfileJobSeekerById);
-router.put('/updateProfileJobSeekerById/:profileid', async (req, res) => {
+router.get("/getProfileJobSeekerById/:profileId", getProfileJobSeekerById);
+router.put("/updateProfileJobSeekerById/:profileid", async (req, res) => {
   try {
     const profileId = req.params.profileid;
     const updates = req.body; // The updates to be applied
@@ -70,30 +95,30 @@ router.put('/updateProfileJobSeekerById/:profileid', async (req, res) => {
     // Call the function to update the profile
     const updatedProfile = await updateProfileJobSeekerById(profileId, updates);
 
-    res.status(200).json({ message: 'Profile updated successfully', profile: updatedProfile });
+    res.status(200).json({
+      message: "Profile updated successfully",
+      profile: updatedProfile,
+    });
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error updating profile:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 router.get('/getAllJobSeekerProfiles',getAllJobSeekerProfiles);
 
-
-
-
-router.get('/getUserJobSeekers',getUserJobSeekers);
-router.get('/getUser/:userId', getUserById);
+router.get("/getUserJobSeekers", getUserJobSeekers);
+router.get("/getUser/:userId", getUserById);
 
 //
 //router.post('/registercompany',  createUserCompany)
-router.get('/',getUsers);
-router.get('/company',authMiddleware, getUserCompany);
-router.post('/registerCompany', registerUserCompany)
-router.post('/login', loginLimiter, speedLimiter, loginUser)
-router.post('/refresh-token', refreshAccessToken)
-router.post('/forgot-password', forgotPassword)
-router.post('/reset-password', resetPassword)
+router.get("/", getUsers);
+router.get("/company", authMiddleware, getUserCompany);
+router.post("/registerCompany", registerUserCompany);
+router.post("/login", loginUser);
+router.post("/refresh-token", refreshAccessToken);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 
 
@@ -101,30 +126,30 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
   try {
     const deleted = await User.findOneAndDelete({ _id: req.params.id });
     if (!deleted) {
-      return res.status(404).json({ error: 'user not found' });
+      return res.status(404).json({ error: "user not found" });
     }
-    res.status(200).json({ message: 'user deleted successfully' });
+    res.status(200).json({ message: "user deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 // Accept user route
-router.put('/accept/:email',authMiddleware, acceptUserByEmail);
+router.put("/accept/:email", authMiddleware, acceptUserByEmail);
 
 // Reject user route
-router.put('/reject/:email',authMiddleware, rejectUserByEmail);
+router.put("/reject/:email", authMiddleware, rejectUserByEmail);
 
 // Route for initiating Facebook authentication
-router.get('/auth/facebook', passport.authenticate('facebook'));
+router.get("/auth/facebook", passport.authenticate("facebook"));
 // Route for handling Facebook authentication callback
-router.get('/auth/facebook/callback', passport.authenticate('facebook', {
-  successRedirect: '/', // Redirect to home page after successful authentication
-  failureRedirect: '/login', // Redirect to login page if authentication fails
-}));
-
-
-
+router.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", {
+    successRedirect: "/", // Redirect to home page after successful authentication
+    failureRedirect: "/login", // Redirect to login page if authentication fails
+  })
+);
 
 
 router.get("/search/company/:name", async function (req, res) {
@@ -134,31 +159,29 @@ router.get("/search/company/:name", async function (req, res) {
     res.json(usercompany);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-router.delete("/delete/:id", authMiddleware,async function (req, res) {
+router.delete("/delete/:id", authMiddleware, async function (req, res) {
   try {
     const deleted = await User.findOneAndDelete({ _id: req.params.id });
     if (!deleted) {
-      return res.status(404).json({ error: 'user not found' });
+      return res.status(404).json({ error: "user not found" });
     }
-    res.status(200).json({ message: 'user deleted successfully' });
+    res.status(200).json({ message: "user deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-router.get('/dashboard',authMiddleware, isAdmin, (req, res) => {
-    // This route can only be accessed by admin
-  });
-  router.get('/Job_offer', isCompany, (req, res) => {
-  });
-  router.get('/job_application', isJobSeeker, (req, res) => {
-  });
-  /*router.get('/job_offers', isJobSeeker, (req, res) => {
+router.get("/dashboard", authMiddleware, isAdmin, (req, res) => {
+  // This route can only be accessed by admin
+});
+router.get("/Job_offer", isCompany, (req, res) => {});
+router.get("/job_application", isJobSeeker, (req, res) => {});
+/*router.get('/job_offers', isJobSeeker, (req, res) => {
   });*/
-  /*
+/*
   router.get('/applications', isCompany, (req, res) => {
     // This route can only be accessed by company users
   });*: 
@@ -264,17 +287,17 @@ router.put('/profileJobSeeker_git/:profileId', async (req, res) => {
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '/kiki'); // Define where to store uploaded files
+    cb(null, "/kiki"); // Define where to store uploaded files
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname); // Define file name
-  }
+    cb(null, Date.now() + "-" + file.originalname); // Define file name
+  },
 });
 
 const upload = multer({ storage: storage }); // Keep this declaration for handling file uploads
 
 // Handle image upload
-router.post('/upload', upload.single('image'), async (req, res) => {
+router.post("/upload", upload.single("image"), async (req, res) => {
   const imageUrl = req.file.path; // Assuming the image is stored in a local directory
   const userId = req.user.id; // Assuming you have authenticated the user and have their ID
 
@@ -282,7 +305,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     // Find the user by ID and update the image attribute
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     user.image = imageUrl;
@@ -291,54 +314,56 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     res.json({ imageUrl: imageUrl });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 //////////////////////  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
 ////////////////////// 
 //////////////////////
-router.post('/createUser',authMiddleware, upload.single('image'), createUser);
-router.put('/:id', async (req, res) => {
+router.post("/createUser",authMiddleware, upload.single("image"), createUser);
+router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const userData = req.body; // Updated user data sent in the request body
 
   try {
     // Find the user by ID and update all attributes
-    const updatedUser = await User.findByIdAndUpdate(id, userData, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(id, userData, {
+      new: true,
+    });
 
     // Check if the user was found and updated
     if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Send the updated user data in the response
     res.json(updatedUser);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 // Route to block/unblock user
-router.put('/block/:id',authMiddleware, async (req, res) => {
+router.put("/block/:id", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Toggle the blocked status of the user
     user.isBlocked = !user.isBlocked;
     await user.save();
 
-    res.json({ message: 'User blocked/unblocked successfully', user });
+    res.json({ message: "User blocked/unblocked successfully", user });
   } catch (error) {
-    console.error('Error blocking/unblocking user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error blocking/unblocking user:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
 // Route pour débloquer un utilisateur
-router.put('/unblock/:id',authMiddleware, async (req, res) => {
+router.put("/unblock/:id", authMiddleware, async (req, res) => {
   const userId = req.params.id;
 
   try {
@@ -347,7 +372,7 @@ router.put('/unblock/:id',authMiddleware, async (req, res) => {
 
     // Vérifier si l'utilisateur existe
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Débloquer l'utilisateur en définissant isBlocked à false
@@ -357,29 +382,26 @@ router.put('/unblock/:id',authMiddleware, async (req, res) => {
     await user.save();
 
     // Renvoyer une réponse indiquant que l'utilisateur a été débloqué avec succès
-    res.json({ message: 'User unblocked successfully', user });
+    res.json({ message: "User unblocked successfully", user });
   } catch (error) {
-    console.error('Error unblocking user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error unblocking user:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
 // Créer un nouvel événement
-router.post('/events',createEvent);
+router.post("/events", createEvent);
 
 // Récupérer tous les événements
-router.get('/events', getAllEvents);
+router.get("/events", getAllEvents);
 
 // Récupérer un événement par son identifiant
-router.get('/events/:id', getEventById);
+router.get("/events/:id", getEventById);
 
 // Mettre à jour un événement existant
-router.put('/events/:id',updateEvent);
+router.put("/events/:id", updateEvent);
 
 // Supprimer un événement
-router.delete('/events/:id', deleteEvent);
-
-
+router.delete("/events/:id", deleteEvent);
 
 module.exports = router;
- 

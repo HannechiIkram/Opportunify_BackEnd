@@ -11,7 +11,7 @@ const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
 const isJobSeeker = accessControl(['job_seeker']);
 // [UPDATE]
-router.put("/update/:id",authMiddleware, async function (req, res) {
+router.put("/update/:id", async function (req, res) {
     try {
       const updatedjob_offer = await job_offerModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (!updatedjob_offer) {
@@ -25,7 +25,7 @@ router.put("/update/:id",authMiddleware, async function (req, res) {
   });
 
 //  [DELETE] 
-router.delete("/delete/:id",authMiddleware, async function (req, res) {
+router.delete("/delete/:id", async function (req, res) {
     try {
       const deletedjoboffer = await job_offerModel.findOneAndDelete({ _id: req.params.id });
       if (!deletedjoboffer) {
@@ -37,6 +37,8 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+////samar
+router.get("/getoffershomepage",userController.getoffershomepage);
 
 
     // Search based on the title
@@ -52,7 +54,7 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
   });
 router.get("/getall",authMiddleware, userController.getall);
 
-router.get("/get/:id",authMiddleware, userController.getbyid);
+router.get("/get/:id", userController.getbyid);
 //router.post("/add", userController.add);
 router.post('/add', authMiddleware, userController.add);
 

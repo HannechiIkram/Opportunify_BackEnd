@@ -1,38 +1,49 @@
-const UserModel = require('../models/user');
+const UserModel = require("../models/user");
 const mongoose = require("mongoose"); // Importez Mongoose ici
-const UserCompanyModel = require('../models/user-company');
-const User = require('../models/user');
+const UserCompanyModel = require("../models/user-company");
+const User = require("../models/user");
 
-const JobSeekerModel = require ('../models/user-jobseeker');
-const ProfileJobSeeker = require('../models/Profile_jobseeker')
-const ProfileCompany= require('../models/Profile_company')
-const { comparePassword, hashPassword } = require('../helpers/auth');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');  
-const rateLimit = require('express-rate-limit');
-const slowDown = require('express-slow-down');
-const passport = require('passport');
-const InstagramStrategy = require('passport-instagram').Strategy;
-const FacebookStrategy = require('passport-facebook').Strategy;
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
-
+const JobSeekerModel = require("../models/user-jobseeker");
+const ProfileJobSeeker = require("../models/Profile_jobseeker");
+const ProfileCompany = require("../models/Profile_company");
+const { comparePassword, hashPassword } = require("../helpers/auth");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+const rateLimit = require("express-rate-limit");
+const slowDown = require("express-slow-down");
+const passport = require("passport");
+const InstagramStrategy = require("passport-instagram").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 
 //ajouter un user quelconque( pour l'admin peut etre)
 const registerUser = async (req, res) => {
   try {
-    const { name,email, password,lastname, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
+    const {
+      name,
+      email,
+      password,
+      lastname,
+      role,
+      description,
+      phone,
+      phoneNumber,
+      socialMedia,
+      address,
+      imageUrl,
+    } = req.body;
 
     // Validate input
-    if (!email || !password || !role||!name) {
-      return res.status(400).json({ error: 'All fields are required' });
+    if (!email || !password || !role || !name) {
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email is already taken' });
+      return res.status(400).json({ error: "Email is already taken" });
     }
 
     // Hash the password
@@ -43,15 +54,15 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role, 
-      image: imageUrl,// Add image URL to user data
+      role,
+      image: imageUrl, // Add image URL to user data
 
       address,
       phone,
       phoneNumber,
       socialMedia,
       lastname,
-      description
+      description,
     });
 
     // Return response
@@ -61,41 +72,60 @@ const registerUser = async (req, res) => {
       role: newUser.role,
     });
   } catch (error) {
-    console.error('Error during user registration:', error);}
+    console.error("Error during user registration:", error);
   }
-
-
+};
 
 // Import the transporter configuration (make sure the path is correct)
-const transporter = require('../nodemailer-config');
-;const registerUserCompany = async (req, res) => {
+const transporter = require("../nodemailer-config");
+const registerUserCompany = async (req, res) => {
   try {
-    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity, image } = req.body;
+    const {
+      name,
+      email,
+      password,
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image,
+    } = req.body;
 
     // Vérification de la présence des champs obligatoires
     if (!name || !email || !password || !phoneNumber) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
+      return res
+        .status(400)
+        .json({ error: "Name, email, and password are required" });
     }
 
     // Validation de la longueur du mot de passe
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters long" });
     }
 
     // Vérification si l'email est déjà pris
     const exist = await UserCompanyModel.findOne({ email });
     if (exist) {
-      return res.status(400).json({ error: 'Email is already taken' });
+      return res.status(400).json({ error: "Email is already taken" });
     }
 
     // Validation du numéro de téléphone
     if (!/^\d{1,12}$/.test(phoneNumber)) {
-      return res.status(400).json({ error: 'Phone number should contain only digits and not exceed 12 characters' });
+      return res.status(400).json({
+        error:
+          "Phone number should contain only digits and not exceed 12 characters",
+      });
     }
 
     // Validation du domaine d'activité
     if (!/^[a-zA-Z]+$/.test(domainOfActivity)) {
-      return res.status(400).json({ error: 'Domain of activity should contain only letters' });
+      return res
+        .status(400)
+        .json({ error: "Domain of activity should contain only letters" });
     }
 
     // Validation des liens des réseaux sociaux
@@ -104,55 +134,58 @@ const transporter = require('../nodemailer-config');
       return res.status(400).json({ error: socialMediaValidation.error });
     }
 
-   // Validation de la description
-if (!/^[a-zA-Z\s\n]+$/.test(description)) {
-  return res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
-}
-// Check if user already existstry {
-  const existingUser = await UserModel.findOne({ email });
-  if (existingUser) {
-    return res.status(400).json({ error: 'Email is already taken' });
+    // Validation de la description
+    if (!/^[a-zA-Z\s\n]+$/.test(description)) {
+      return res.status(400).json({
+        error:
+          "Description should contain only letters, spaces, and paragraphs",
+      });
+    }
+    // Check if user already existstry {
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email is already taken" });
+    }
+
+    const imageUrl = req.file ? req.file.path : ""; // If req.file is undefined, set imageUrl to an empty string
+
+    const hashedPassword = await hashPassword(password);
+
+    const newCompanyUser = await UserCompanyModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image: imageUrl, // Add image URL to user data
+    });
+
+    const newUser = await UserModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: "company",
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image: imageUrl, // Add image URL to user data
+    });
+
+    return res
+      .status(201)
+      .json({ msg: "User added successfully", newUser, newCompanyUser });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-  
-  const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
-
-  const hashedPassword = await hashPassword(password);
-
-  const newCompanyUser = await UserCompanyModel.create({
-    name,
-    email,
-    password: hashedPassword,
-    matriculeFiscale,
-    description,
-    socialMedia,
-    address,
-    phoneNumber,
-    domainOfActivity,
-    image: imageUrl // Add image URL to user data
-
-  });
-
-  const newUser = await UserModel.create({
-    name,
-    email,
-    password: hashedPassword,
-    role: 'company',
-    matriculeFiscale,
-    description,
-    socialMedia,
-    address,
-    phoneNumber,
-    domainOfActivity,
-    image: imageUrl // Add image URL to user data
-
-  });
-
-  return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });
-} catch (error) {
-  console.error(error);
-  return res.status(500).json({ error: 'Internal Server Error' });
-}
-}
+};
 // Function to validate social media links
 const validateSocialMediaLinks = (socialMedia) => {
   for (const key in socialMedia) {
@@ -163,7 +196,7 @@ const validateSocialMediaLinks = (socialMedia) => {
       return { error: `${key} should be a valid URL` };
     }
   }
-///
+  ///
   return { valid: true };
 };
 
@@ -172,7 +205,7 @@ const validateSocialMediaLinks = (socialMedia) => {
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Max 5 requests per windowMs
-  message: 'Too many login attempts, please try again later.',
+  message: "Too many login attempts, please try again later.",
 });
 
 // Set up slowing down of requests after 3 failed attempts within the windowMs
@@ -182,16 +215,9 @@ const speedLimiter = slowDown({
   delayMs: () => 180000, // Delay subsequent requests by 3 minutes
 });
 
-
 ///// login with Protection Against Brute Force Attacks
 /*
-*/
-
-
-
-
-
-
+ */
 
 const loginUser = async (req, res) => {
   try {
@@ -199,18 +225,17 @@ const loginUser = async (req, res) => {
 
     // Find the user based on the provided email
     const user = await UserModel.findOne({ email });
-
     // Check if the user exists
     if (!user) {
-      return res.status(400).json({ error: 'User not found' });
+      return res.status(400).json({ error: "User not found" });
     }
 
     // Initialize jobSeekerId and profileId
     let jobSeekerId = null;
     let profileId = null;
-    let companyId=null;
+    let companyId = null;
     // Check if the user is a job seeker
-    if (user.role === 'job_seeker') {
+    if (user.role === "job_seeker") {
       // Retrieve the ID of the job seeker using JobSeekerModel
       const jobSeeker = await JobSeekerModel.findOne({ email });
       jobSeekerId = jobSeeker ? jobSeeker._id : null;
@@ -234,13 +259,13 @@ const loginUser = async (req, res) => {
         userId: jobSeekerId,
         name: jobSeeker.name,
         email: jobSeeker.email,
-        password:user.password,
-        lastname:jobSeeker.lastname,
-        phone:jobSeeker.phone,
-        address:jobSeeker.address,
-        birthdate:jobSeeker.birthdate,
-        role_jobseeker:jobSeeker.role_jobseeker,
-          image:jobSeeker.image,
+        password: user.password,
+        lastname: jobSeeker.lastname,
+        phone: jobSeeker.phone,
+        address: jobSeeker.address,
+        birthdate: jobSeeker.birthdate,
+        role_jobseeker: jobSeeker.role_jobseeker,
+        image: jobSeeker.image,
         // Add other fields as needed
       });
 
@@ -249,18 +274,17 @@ const loginUser = async (req, res) => {
       profileId = savedProfile._id;
     }}
 
-
     // Check if the user is a company
     let company_profileId = null;
 
     // Check if the user is a company
-    if (user.role === 'company') {
+    if (user.role === "company") {
       // Retrieve the company with the same email
       const company = await UserCompanyModel.findOne({ email });
-      
+
       // Check if a company with the provided email exists
       if (!company) {
-        return res.status(400).json({ error: 'Company not found' });
+        return res.status(400).json({ error: "Company not found" });
       }
  
       // Create a profile for the company
@@ -283,50 +307,58 @@ const loginUser = async (req, res) => {
       const savedProfileCompany = await profileCompany.save();
       company_profileId = savedProfileCompany._id;
     }
-   // Compare the provided password with the stored hashed password
-    const match = await comparePassword(password, user.password);
 
+    // Compare the provided password with the stored hashed password
+    const match = await comparePassword(password, user.password);
+    console.log("before");
     // Check if the passwords match
     if (!match) {
       return res.status(400).json({ error: "Passwords don't match" });
     }
-
+    console.log({ user });
     // Generate access token
     const accessToken = jwt.sign(
-      { email: user.email, id: user._id, name: user.name, jobSeekerId, profileId,company_profileId  },
+      {
+        email: user.email,
+        id: user._id,
+        name: user.name,
+        jobSeekerId,
+        profileId,
+        company_profileId,
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '180m' } // Adjust the expiration time as needed
-    // Adjust the expiration time as needed
+      { expiresIn: "180m" } // Adjust the expiration time as needed
+      // Adjust the expiration time as needed
     );
 
     // Generate refresh token
     const refreshToken = jwt.sign(
       { email: user.email, id: user._id, role: user.role },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: '7d' } // Adjust the expiration time as needed
+      { expiresIn: "7d" } // Adjust the expiration time as needed
     );
 
- 
-
     //res.cookie('jwt', refreshToken, {
- /*   // Set both tokens as HTTP-only cookies
+    /*   // Set both tokens as HTTP-only cookies
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true, // other cookie options as needed
     });
 */
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true, // other cookie options as needed
-      sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000 
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     // Return the access token, user data, jobSeekerId, and profileId in the response
-    res.status(200).json({ accessToken, user, jobSeekerId, profileId,company_profileId });
+    res
+      .status(200)
+      .send({ accessToken, user, jobSeekerId, profileId, company_profileId });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -353,14 +385,14 @@ const getProfileJobSeekerById = async (req, res) => {
 
     // Check if the profile exists
     if (!profile) {
-      return res.status(404).json({ error: 'Profile not found' });
+      return res.status(404).json({ error: "Profile not found" });
     }
 
     // Return the profile data
     res.status(200).json({ profile });
   } catch (error) {
-    console.error('Error fetching profile job seeker:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching profile job seeker:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 ////////////////////////////////////////////////////////////////////////////////
@@ -370,27 +402,26 @@ const refreshAccessToken = (req, res) => {
   try {
     // Get the refresh token from the HTTP-only cookie
     const refreshToken = req.cookies.refreshToken;
-    console.log('Received Refresh Token:', refreshToken);
+    console.log("Received Refresh Token:", refreshToken);
 
     // Verify the refresh token
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    console.log('Decoded Refresh Token:', decoded);
+    console.log("Decoded Refresh Token:", decoded);
 
     // Generate a new access token
     const accessToken = jwt.sign(
       { email: decoded.email, id: decoded.id },
       process.env.JWT_SECRET,
-      { expiresIn: '15m' } // Adjust the expiration time as needed
+      { expiresIn: "15m" } // Adjust the expiration time as needed
     );
 
     // Return the new access token
     res.status(200).json({ accessToken });
   } catch (error) {
-    console.error('Refresh Token Error:', error);
-    return res.status(401).json({ error: 'Unauthorized' });
+    console.error("Refresh Token Error:", error);
+    return res.status(401).json({ error: "Unauthorized" });
   }
 };
-
 
 const forgotPassword = async (req, res) => {
   try {
@@ -398,10 +429,10 @@ const forgotPassword = async (req, res) => {
     const user = await UserModel.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ error: 'Utilisateur non trouvé' });
+      return res.status(400).json({ error: "Utilisateur non trouvé" });
     }
 
-    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetToken = crypto.randomBytes(20).toString("hex");
     const resetTokenExpires = Date.now() + 3600000; // 1 hour expiration
 
     user.resetToken = resetToken;
@@ -412,26 +443,28 @@ const forgotPassword = async (req, res) => {
     const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: 'oumaima.zanteni@esprit.tn',
+      from: "ikram.hannechi@esprit.tn",
       to: email,
-      subject: 'Réinitialisation de mot de passe',
+      subject: "Réinitialisation de mot de passe",
       text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error('Erreur d\'envoi de l\'e-mail :', error);
-        return res.status(500).json({ error: 'Erreur interne du serveur' });
+        console.error("Erreur d'envoi de l'e-mail :", error);
+        return res.status(500).json({ error: "Erreur interne du serveur" });
       }
-      console.log('E-mail envoyé :', info.response);
-      res.status(200).json({ message: 'Lien de réinitialisation du mot de passe envoyé à votre e-mail' });
+      console.log("E-mail envoyé :", info.response);
+      res.status(200).json({
+        message:
+          "Lien de réinitialisation du mot de passe envoyé à votre e-mail",
+      });
     });
   } catch (error) {
-    console.error('Erreur de mot de passe oublié :', error);
-    return res.status(500).json({ error: 'Erreur interne du serveur' });
+    console.error("Erreur de mot de passe oublié :", error);
+    return res.status(500).json({ error: "Erreur interne du serveur" });
   }
 };
-
 
 const resetPassword = async (req, res) => {
   try {
@@ -443,8 +476,8 @@ const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      console.error('Invalid or expired reset token:', resetToken);
-      return res.status(400).json({ error: 'Invalid or expired reset token' });
+      console.error("Invalid or expired reset token:", resetToken);
+      return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 
     const hashedPassword = await hashPassword(newPassword);
@@ -454,24 +487,27 @@ const resetPassword = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ message: 'Password reset successfully' });
+    res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
-    console.error('Reset Password Error:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Reset Password Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 // Configure Facebook Strategy
-passport.use(new FacebookStrategy({
-  clientID: '443118344822988',
-  clientSecret: '9c74042f8ac329b9b7234ed887abe66c',
-  callbackURL: 'http://localhost:5173/auth/facebook/callback' // Adjust the callback URL as needed
-}, (accessToken, refreshToken, profile, done) => {
-  // Handle user data returned by Facebook and save it in your database
-  return done(null, profile);
-}));
-
-
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: "443118344822988",
+      clientSecret: "9c74042f8ac329b9b7234ed887abe66c",
+      callbackURL: "http://localhost:5173/auth/facebook/callback", // Adjust the callback URL as needed
+    },
+    (accessToken, refreshToken, profile, done) => {
+      // Handle user data returned by Facebook and save it in your database
+      return done(null, profile);
+    }
+  )
+);
 
 /*
 // Configure Instagram Strategy
@@ -533,8 +569,8 @@ const getUsers = async (req, res) => {
     res.send(users);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error retrieving users');
-  }  
+    res.status(500).send("Error retrieving users");
+  }
 };
 
 const getUserCompany = async (req, res) => {
@@ -543,7 +579,7 @@ const getUserCompany = async (req, res) => {
     res.send(users);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error retrieving users');
+    res.status(500).send("Error retrieving users");
   }
 };
 
@@ -576,7 +612,7 @@ const createUserCompany = async (req, res) => {
   }
 };
 
-*/// userController.js
+*/ // userController.js
 
 const getUserCompanyProfile = async (req, res) => {
   try {
@@ -586,14 +622,14 @@ const getUserCompanyProfile = async (req, res) => {
     const userCompany = await UserCompanyModel.findOne({ userId });
 
     if (!userCompany) {
-      return res.status(404).json({ error: 'Company profile not found' });
+      return res.status(404).json({ error: "Company profile not found" });
     }
 
     // Return the company profile data
     res.status(200).json({ userCompany });
   } catch (error) {
-    console.error('Error fetching company profile:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching company profile:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -607,17 +643,16 @@ const getUserByIdd = async (req, res) => {
     const user = await UserModel.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Return the user data
     res.status(200).json({ user });
   } catch (error) {
-    console.error('Error fetching user by ID:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching user by ID:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 const getAllJobSeekerProfiles = async (req, res) => {
   try {
@@ -626,10 +661,9 @@ const getAllJobSeekerProfiles = async (req, res) => {
     res.send(profiles);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error retrieving job seeker profiles');
+    res.status(500).send("Error retrieving job seeker profiles");
   }
 };
-
 
 const getProfileJobSeekerByUserId = async (req, res) => {
   try {
@@ -640,17 +674,16 @@ const getProfileJobSeekerByUserId = async (req, res) => {
 
     // Check if the profile exists
     if (!profile) {
-      return res.status(404).json({ error: 'Profile not found' });
+      return res.status(404).json({ error: "Profile not found" });
     }
 
     // Return the profile data
     res.status(200).json({ profile });
   } catch (error) {
-    console.error('Error fetching profile job seeker by userId:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching profile job seeker by userId:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 const getProfileCompanyById = async (req, res) => {
   try {
@@ -661,17 +694,16 @@ const getProfileCompanyById = async (req, res) => {
 
     // Check if the profile exists
     if (!profile) {
-      return res.status(404).json({ error: 'Profile not found' });
+      return res.status(404).json({ error: "Profile not found" });
     }
 
     // Return the profile data
     res.status(200).json({ profile });
   } catch (error) {
-    console.error('Error fetching profile company by ID:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching profile company by ID:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 /*
 const updateProfileJobSeekerById = async (profileId, updates) => {
@@ -714,21 +746,40 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
 
     // Check if the profile exists
     if (!profile) {
-      throw new Error('Profile job seeker not found');
+      throw new Error("Profile job seeker not found");
     }
-    const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(profileId, { $set: updates }, { new: true });
+    const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(
+      profileId,
+      { $set: updates },
+      { new: true }
+    );
     delete updates._id;
 
     // Check if updates include name, password, or image
     if (updates.name || updates.password || updates.image) {
       // Update corresponding user with matching email
-      await UserModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
+      await UserModel.findOneAndUpdate(
+        { email: profile.email },
+        { $set: updates }
+      );
     }
 
     // Check if updates include name, lastname, password, birthdate, address, image, phone, or role_jobseeker
-    if (updates.name || updates.lastname || updates.password || updates.birthdate || updates.address || updates.image || updates.phone || updates.role_jobseeker) {
+    if (
+      updates.name ||
+      updates.lastname ||
+      updates.password ||
+      updates.birthdate ||
+      updates.address ||
+      updates.image ||
+      updates.phone ||
+      updates.role_jobseeker
+    ) {
       // Update corresponding job seeker with matching email
-      await JobSeekerModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
+      await JobSeekerModel.findOneAndUpdate(
+        { email: profile.email },
+        { $set: updates }
+      );
     }
     delete updates._id;
 
@@ -741,50 +792,37 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     throw error;
   }
 };
-
-
-
-
-
-///////
-
 const createUser = async (req, res) => {
-  const userId = req.user._id; // ID de l'utilisateur connecté
-
   try {
     const { name, email, password, role } = req.body;
-    const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
+    const imageUrl = req.file ? req.file.path : ""; // If req.file is undefined, set imageUrl to an empty string
 
     // Validate input
-
-      // Check if role is provided in the request body
-      if (!req.body.role) {
-        return res.status(400).json({ message: "Role is required" });
-    }
-
-    // Check if the provided role is 'admin'
-    if (req.body.role !== 'admin') {
-        return res.status(400).json({ message: "Only 'admin' role is allowed" });
-    }
     if (!email || !password || !role || !name) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     // Check if user already exists
-    const existingUser = await UserModel.findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email is already taken' });
+      return res.status(400).json({ error: "Email is already taken" });
+    }
+
+    // Check if the provided role is valid
+    if (role !== "admin" && role !== "user") {
+      return res.status(400).json({ error: "Invalid role. Only 'admin' or 'user' roles are allowed" });
     }
 
     // Hash the password
     const hashedPassword = await hashPassword(password);
 
     // Create new user
-    const newUser = await UserModel.create({
+    const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
       role,
+      imageUrl, // Add imageUrl to the user object
     });
 
     // Return response
@@ -794,10 +832,12 @@ const createUser = async (req, res) => {
       role: newUser.role,
     });
   } catch (error) {
-    console.error('Error during user creation:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error during user creation:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
 //
 /*const modifyUser = async (req, res) => {
   try {
@@ -828,33 +868,34 @@ const getUserById = async (req, res) => {
   try {
     const userId = req.params.id; // Access the user ID from req.params.id
 
-    const user = await User.findById(userId).select('name image email password role address phone description lastname socialMedia phoneNumber');
+    const user = await User.findById(userId).select(
+      "name image email password role address phone description lastname socialMedia phoneNumber"
+    );
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user details:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching user details:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 // Backend: logoutUser function
 const logoutUser = (req, res) => {
   try {
     // Effacer le cookie de rafraîchissement
-    res.clearCookie('jwt', {
+    res.clearCookie("jwt", {
       httpOnly: true,
       secure: true, // Assurez-vous que cela correspond aux options de cookie de connexion
-      sameSite: 'None' // Assurez-vous que cela correspond aux options de cookie de connexion
+      sameSite: "None", // Assurez-vous que cela correspond aux options de cookie de connexion
     });
-    
+
     // Envoyer une réponse JSON indiquant une déconnexion réussie
-    res.status(200).json({ message: 'Déconnexion réussie' });
+    res.status(200).json({ message: "Déconnexion réussie" });
   } catch (error) {
-    console.error('Erreur de déconnexion :', error);
-    return res.status(500).json({ error: 'Erreur interne du serveur' });
+    console.error("Erreur de déconnexion :", error);
+    return res.status(500).json({ error: "Erreur interne du serveur" });
   }
 };
 
@@ -862,14 +903,17 @@ const logoutUser = (req, res) => {
 const acceptUserByEmail = async (req, res) => {
   const { email } = req.params;
   try {
-    const user = await User.findOneAndUpdate({ email }, { $set: { accepted: true } });
+    const user = await User.findOneAndUpdate(
+      { email },
+      { $set: { accepted: true } }
+    );
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
-    res.status(200).json({ message: 'User accepted successfully' });
+    res.status(200).json({ message: "User accepted successfully" });
   } catch (error) {
-    console.error('Error accepting user:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error accepting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -877,14 +921,17 @@ const acceptUserByEmail = async (req, res) => {
 const rejectUserByEmail = async (req, res) => {
   const { email } = req.params;
   try {
-    const user = await User.findOneAndUpdate({ email }, { $set: { accepted: false } });
+    const user = await User.findOneAndUpdate(
+      { email },
+      { $set: { accepted: false } }
+    );
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
-    res.status(200).json({ message: 'User rejected successfully' });
+    res.status(200).json({ message: "User rejected successfully" });
   } catch (error) {
-    console.error('Error rejecting user:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error rejecting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -896,7 +943,7 @@ module.exports = {
   registerUserCompany,
   loginUser,
   refreshAccessToken,
-  forgotPassword, 
+  forgotPassword,
   resetPassword,
   loginLimiter,
   speedLimiter,
@@ -905,9 +952,9 @@ module.exports = {
   getUserCompany,
   createUser,
   getUserById,
-  acceptUserByEmail, rejectUserByEmail,
+  acceptUserByEmail,
+  rejectUserByEmail,
   logoutUser,
-
 
   getUserCompanyProfile,
   getUserByIdd,
