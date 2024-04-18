@@ -3,12 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./dev_build/main.js",
+    "start": "nodemon ./bin/www",
     "test": "cross-env NODE_ENV='test' mocha --timeout 20000 --exit",
-    "build-dev": "webpack --config webpack.dev.js --mode development"
+    "build-dev": "webpack --config webpack.dev.js --mode development",
+    "dev": "nodemon ./bin/www"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
+    "@mapbox/node-pre-gyp": "^1.0.11",
     "aws-sdk": "^2.1593.0",
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
