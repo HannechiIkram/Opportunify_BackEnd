@@ -53,14 +53,7 @@ app.use(
   })
 );
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
@@ -78,7 +71,7 @@ const jobOfferRouter = require("./routes/job_offer");
 app.use("/job_offer", jobOfferRouter);
 app.use("/evaluations", evaluationRouter);
 app.use("/status", statusRouter);
-
+app.use('/event', eventrouter);
 //les middleware eli teb3in jsonwebtoken
 app.use("/applications", applicationRouter);
 app.use("/user", userRouter);
@@ -87,7 +80,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(function (req, res, next) {
   next(createError(404));
 });
-app.use('/event', eventrouter);
+
 
 app.use(function (err, req, res, next) {
   res.locals.title = "Error";
