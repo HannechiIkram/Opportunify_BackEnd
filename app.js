@@ -16,6 +16,8 @@ const applicationRouter = require("./routes/application");
 const userRouter = require("./routes/users");
 const evaluationRouter = require("./routes/evaluations");
 const statusRouter = require("./routes/statusRoutes");
+const eventrouter = require('./routes/event');
+
 const app = express();
 
 //const crypto = require('crypto');
@@ -85,6 +87,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(function (req, res, next) {
   next(createError(404));
 });
+app.use('/event', eventrouter);
 
 app.use(function (err, req, res, next) {
   res.locals.title = "Error";
