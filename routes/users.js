@@ -2,6 +2,18 @@ var express = require("express");
 var router = express.Router();
 const multer = require("multer");
 //const OpenAI = require("openai"); // Utilisation de require
+const multer = require('multer');
+//const uploadimage= multer({dest:'uploadsimages/'})
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploadsimages/') // Destination directory for uploaded files
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname) // File naming convention
+  }
+});
+
+const upload = multer({ storage: storage });
 
 //const openai = new OpenAI({apiKey});
 const { comparePassword, hashPassword } = require("../helpers/auth");
@@ -121,6 +133,7 @@ router.post("/login", loginUser);
 router.post("/refresh-token", refreshAccessToken);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+
 
 
 
@@ -287,6 +300,7 @@ router.put('/profileJobSeeker_git/:profileId', async (req, res) => {
 
 // Configure multer for handling file uploads
 // Configure multer for handling file uploads
+/*
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "/kiki"); // Define where to store uploaded files
@@ -318,11 +332,11 @@ router.post("/upload", upload.single("image"), async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
-});
+}); 
 //////////////////////  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
 ////////////////////// 
 //////////////////////
-router.post("/createUser",authMiddleware, upload.single("image"), createUser);
+router.post("/createUser",authMiddleware, upload.single("image"), createUser); */
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const userData = req.body; // Updated user data sent in the request body
@@ -404,6 +418,69 @@ router.put("/events/:id", updateEvent);
 
 // Supprimer un événement
 router.delete("/events/:id", deleteEvent);
+/*
+router.post('/addimage', upload.single('image'), function (req, res, next) {
+  // Access the uploaded file using req.file
+  if (!req.file) {
+    return res.status(400).send('No files were uploaded.');
+  }
+
+  // File upload successful, send response
+  res.send('File uploaded successfully.');
+});
+*/
+// POST route to upload image for profile job seeker
+router.post('/profileJobSeeker_image/:profileId', upload.single('image'), async (req, res) => {
+  try {
+    const profileId = req.params.profileId;
+
+    // Find the profile job seeker by _id
+    let profileJobSeeker = await profileJobSeekerModel.findById(profileId);
+
+    if (!profileJobSeeker) {
+      return res.status(404).json({ error: 'Profile job seeker not found' });
+    }
+
+    // Check if an image file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file uploaded' });
+    }
+
+    // Update the image field with the path to the uploaded image file
+    profileJobSeeker.image = req.file.path;
+
+    // Save the updated profile job seeker
+    profileJobSeeker = await profileJobSeeker.save();
+
+    return res.status(200).json({ message: 'Image uploaded successfully', profileJobSeeker });
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+const path = require('path');
+
+router.get('/profileJS_image/:profileId', async (req, res) => {
+  try {
+    const profileId = req.params.profileId;
+
+    // Find the profile job seeker by _id
+    const profileJobSeeker = await profileJobSeekerModel.findById(profileId);
+
+    if (!profileJobSeeker) {
+      return res.status(404).json({ error: 'Profile job seeker not found' });
+    }
+
+    // Resolve the absolute path to the image file
+    const imagePath = path.resolve(__dirname, '..', profileJobSeeker.image);
+
+    // Send the image file as a response
+    return res.sendFile(imagePath);
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Route pour traiter les messages du chatbot
 router.post("/chatbot", (req, res) => {
