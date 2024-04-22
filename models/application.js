@@ -24,6 +24,10 @@ job_seeker: { type: Schema.Types.ObjectId, ref: 'UserJobSeeker' },
     type: Schema.Types.ObjectId,
     ref: 'job_offer'
   },
+  job_seeker:{
+    type: Schema.Types.ObjectId,
+    ref: 'job_seeker'
+  }
 });
 
 module.exports = mongoose.model("Application", applicationSchema);

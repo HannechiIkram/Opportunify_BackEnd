@@ -404,4 +404,18 @@ router.put("/events/:id", updateEvent);
 // Supprimer un événement
 router.delete("/events/:id", deleteEvent);
 
+
+// Route pour récupérer les notifications de l'utilisateur
+router.get('/jobseeker/notifications', authMiddleware, async (req, res) => {
+  try {
+    // Récupérez les notifications de l'utilisateur à partir de la base de données
+    const userNotifications = await Notification.find({ recipient: req.user.id });
+    res.status(200).json(userNotifications);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 module.exports = router;

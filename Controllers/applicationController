@@ -1,6 +1,7 @@
 // applicationController.js
 
 const express = require("express");
+const nodemailer = require('nodemailer');
 
 const Application = require("../models/application"); // Corrected import statement
 
@@ -47,33 +48,100 @@ async function getById(req, res) {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 }
+
+const transporter = nodemailer.createTransport({
+  service: 'hotmail',
+  auth: {
+      user: 'opportunify@outlook.com',
+      pass: 'Ahmed123.'
+  },
+  tls: {
+      rejectUnauthorized: false // Trust the self-signed certificate
+  }
+});
+const sendEmail = async (recipient, subject, text) => {
+  let mailOptions = {
+    from: 'opportunify@outlook.com',
+    to: recipient,
+    subject: subject,
+    text: text,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('E-mail envoyé avec succès à', recipient);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'e-mail:', error);
+  }
+};
+
 async function acceptApplication(req, res) {
   try {
-      const { id } = req.params;
-      const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: true, rejected: false }, { new: true });
-      if (!updatedApplication) {
-          return res.status(404).json({ error: 'Application not found' });
-      }
-      res.status(200).json(updatedApplication);
+    const { id } = req.params;
+    
+    // Récupérer les détails de l'application
+    const application = await Application.findById(id);
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Récupérer l'e-mail associé à cette application
+    const jobSeekerEmail = application.email;
+    
+    // Vérifier l'e-mail récupéré dans la console
+    console.log('Email récupéré:', jobSeekerEmail);
+
+    // Envoi de l'e-mail de notification
+    await sendEmail(jobSeekerEmail, 'Accepted Application', 'Your application is accepted');
+ // Créer une notification pour informer l'utilisateur que son application a été acceptée
+ const notification = new Notification({
+  recipient: updatedApplication.job_seeker,
+  message: 'Application Accepted.'
+});
+await notification.save();
+    // Mettre à jour l'état de l'application
+    const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: true, rejected: false }, { new: true });
+    res.status(200).json(updatedApplication);
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-// Mettre à jour une application pour la refuser
+
+
+
+// Fonction pour rejeter une application
 async function rejectApplication(req, res) {
   try {
-      const { id } = req.params;
-      const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true });
-      if (!updatedApplication) {
-          return res.status(404).json({ error: 'Application not found' });
-      }
-      res.status(200).json(updatedApplication);
+    const { id } = req.params;
+    // Mettre à jour l'application en tant que rejetée
+    const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true }).populate('job_seeker');
+
+    // Vérifier si l'application a été trouvée
+    if (!updatedApplication) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Récupérer l'e-mail du demandeur d'emploi lié à cette application
+    const jobSeekerEmail = updatedApplication.job_seeker.email;
+
+    // Envoyer un e-mail à l'utilisateur pour l'informer que l'application a été rejetée
+    await sendEmail(jobSeekerEmail, 'Rejected Application', 'Your application is rejected.');
+ // Créer une notification pour informer l'utilisateur que son application a été rejetée
+ const notification = new Notification({
+  recipient: updatedApplication.job_seeker,
+  message: 'Application rejected.'
+});
+await notification.save();
+    // Envoyer une réponse avec l'application mise à jour
+    res.status(200).json(updatedApplication);
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
+
 
 module.exports = { getall, add ,  getById , acceptApplication, rejectApplication };

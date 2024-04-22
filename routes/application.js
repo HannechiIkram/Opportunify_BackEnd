@@ -16,6 +16,29 @@ const JobOffer = require('../models/job_offer');
 
 
 const authMiddleware = require ('../midill/authMiddleware');
+////samar
+// Route to get applications of the connected user using their ID from the decoded token
+router.get('/application/user', authMiddleware, async (req, res) => {
+  try {
+      // Retrieve the user ID from the decoded token attached to the request
+      const userId = req.user.id;
+
+      // Find applications associated with the user's ID
+      const applications = await Application.find({ job_seeker: userId });
+
+      // Check if applications were found
+      if (!applications || applications.length === 0) {
+          return res.status(404).json({ error: 'No applications found for the user' });
+      }
+
+      // Return the applications
+      res.status(200).json(applications);
+  } catch (error) {
+      // Handle errors
+      console.error('Error fetching applications by user ID:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 // [READ] 
@@ -113,8 +136,9 @@ router.get("/search/date/:date",authMiddleware, async function (req, res) {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
 });
-router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]),async (req, res) => {
   try {
+    const userId = req.user.id;
     const { email, offerId ,motivation,disponibilite, salaire} = req.body; 
     const cvFile = req.files['cv'];
     if (!cvFile || !cvFile[0]) {
@@ -173,7 +197,7 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
       disponibilite,
       salaire,
       job_offer: offerId,
-      job_seeker: jobSeeker._id // Associate the application with the job seeker
+      job_seeker: userId  // Associate the application with the job seeker
     });
 
     // Save the new application
@@ -202,6 +226,8 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+  
 
 // GET route to retrieve application details by ID
 router.get('/get/:id', authMiddleware,async (req, res) => {
