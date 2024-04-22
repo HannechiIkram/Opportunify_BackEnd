@@ -795,7 +795,6 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
 const createUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    const imageUrl = req.file ? req.file.path : ""; // If req.file is undefined, set imageUrl to an empty string
 
     // Validate input
     if (!email || !password || !role || !name) {
@@ -809,7 +808,7 @@ const createUser = async (req, res) => {
     }
 
     // Check if the provided role is valid
-    if (role !== "admin" && role !== "user") {
+    if ( role !== "user" && role !== "company" && role !== "job_seeker") {
       return res.status(400).json({ error: "Invalid role. Only 'admin' or 'user' roles are allowed" });
     }
 
@@ -822,7 +821,6 @@ const createUser = async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      imageUrl, // Add imageUrl to the user object
     });
 
     // Return response

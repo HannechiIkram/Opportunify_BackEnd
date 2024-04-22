@@ -1,7 +1,9 @@
 var express = require("express");
 var router = express.Router();
 const multer = require("multer");
+//const OpenAI = require("openai"); // Utilisation de require
 
+//const openai = new OpenAI({apiKey});
 const { comparePassword, hashPassword } = require("../helpers/auth");
 
 const User = require("../models/user");
@@ -388,7 +390,6 @@ router.put("/unblock/:id", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
 // Créer un nouvel événement
 router.post("/events", createEvent);
 
@@ -404,4 +405,28 @@ router.put("/events/:id", updateEvent);
 // Supprimer un événement
 router.delete("/events/:id", deleteEvent);
 
+// Route pour traiter les messages du chatbot
+router.post("/chatbot", (req, res) => {
+  const { message } = req.body;
+
+  // Simulez la logique du chatbot ici ou connectez-vous à une plateforme comme Dialogflow
+  const responseMessage = `Réponse à votre message : ${message}`;
+
+  res.json({ response: responseMessage });
+});
+//sk-proj-2A1VCxcu4Da83j85gn3AT3BlbkFJUO1qN1XtirEIWlQf6z0y
+
+
+/*async function main() {
+  const completion = await openai.chat.completions.create({
+    messages: [{"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Who won the world series in 2020?"},
+        {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
+        {"role": "user", "content": "Where was it played?"}],
+    model: "gpt-3.5-turbo",
+  });
+
+  console.log(completion.choices[0]);
+}
+main();*/
 module.exports = router;

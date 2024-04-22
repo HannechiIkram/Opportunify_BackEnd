@@ -59,37 +59,41 @@ router.get("/get/:id", userController.getbyid);
 router.post('/add', authMiddleware, userController.add);
 
 
-
-
-router.post('/send',authMiddleware, async (req, res) => {
+// Route pour envoyer les détails de l'offre et un message personnalisé par e-mail
+router.post('/send', authMiddleware, async (req, res) => {
   try {
-    const { recipientEmail, message } = req.body;
+    const { recipientEmail, message, offerDetails } = req.body; // Récupère les détails de l'offre envoyés depuis le client
 
-    // Create a nodemailer transporter configured for Outlook SMTP
+    const emailContent = `
+      ${message}  
+      \n---\n  
+      ${offerDetails}  
+    `;
+
+    // Configure le transporteur Nodemailer
     let transporter = nodemailer.createTransport({
-      service: 'Outlook', // Use Outlook service
+      service: 'Outlook', // Utilisez le service Outlook
       auth: {
-        user: 'ikram.hannechi@esprit.tn', // Your Outlook email
-        pass: 'Ih123456**' // Your Outlook password
+        user: 'ikram.hannechi@esprit.tn', // Votre adresse e-mail Outlook
+        pass: 'Ih123456**' // Votre mot de passe Outlook
       }
     });
 
-    // Send mail with defined transport object
+    // Envoie le mail avec le contenu défini
     let info = await transporter.sendMail({
       from: '"admin" ikram.hannechi@esprit.tn',
       to: recipientEmail,
       subject: 'Job Offer Details',
-      text: message
+      text: emailContent // Utilisez le contenu de l'e-mail généré
     });
 
-    console.log('Message sent: %s', info.messageId);
+    console.log('Message envoyé: %s', info.messageId);
 
-    res.status(200).json({ message: 'Email sent successfully' });
+    res.status(200).json({ message: 'Email envoyé avec succès' });
   } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Erreur lors de l\'envoi de l\'e-mail:', error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 });
-
 
 module.exports = router;
