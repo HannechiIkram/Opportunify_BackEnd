@@ -1,6 +1,5 @@
 var express = require("express");
 var router = express.Router();
-const multer = require("multer");
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -8,6 +7,7 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploadsimages/') // Destination directory for uploaded files
   },
+  
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname) // File naming convention
   }
@@ -506,4 +506,20 @@ router.post("/chatbot", (req, res) => {
   console.log(completion.choices[0]);
 }
 main();*/
+// Route pour approuver un utilisateur
+router.post('/approve', async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (user) {
+      user.isApproved = true;
+      await user.save();
+      res.status(200).json({ message: 'Utilisateur approuvé.' });
+    } else {
+      res.status(404).json({ message: 'Utilisateur introuvable.' });
+    }
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 module.exports = router;

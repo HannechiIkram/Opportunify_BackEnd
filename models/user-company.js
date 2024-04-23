@@ -27,6 +27,7 @@ image: {
   // Autres options de champ si nécessaire...
 },
 accepted: { type: Boolean, default: true },
+isApproved: { type: Boolean, default: false }, // Par défaut, non approuvé
 
 
 })
