@@ -1,93 +1,68 @@
-const createError = require("http-errors");
-const express = require("express");
-const logger = require("morgan");
-const accessControl = require("./midill/accescontrol");
-const twilio = require("twilio");
-
+// Importations
+const createError = require('http-errors');
+const express = require('express');
+const logger = require('morgan');
+const accessControl = require('../Opportunify_BackEnd/midill/accescontrol');
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose"); // Importez Mongoose ici
+const mongoose = require("mongoose");
 const mongoconnection = require("./database/mongodb.json");
-const cors = require("cors");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-require("dotenv").config();
-const indexRouter = require("./routes/index");
-const applicationRouter = require("./routes/application");
-const userRouter = require("./routes/users");
-const evaluationRouter = require("./routes/evaluations");
-const statusRouter = require("./routes/statusRoutes");
-const eventrouter = require('./routes/event');
+const cors = require('cors');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+require('dotenv').config();
+
+// Routes
+const indexRouter = require('./routes/index');
+const applicationRouter = require('./routes/application');
+const userRouter = require('./routes/users');
+const jobOfferRouter = require("./routes/job_offer");
 
 const app = express();
 
-//const crypto = require('crypto');
-//const randomHexString = crypto.randomBytes(64).toString('hex');
-//console.log(randomHexString);
+// Connexion à MongoDB
+mongoose.connect(
+  mongoconnection.url
+)
+.then(() => {
+  console.log("Connected to DB");
+})
+.catch((err) => {
+  console.log(err);
+});
 
-// Connexion à la base de données MongoDB avec Mongoose
-require("dotenv").config(); // Load environment variables from .env file
+// Configuration des middlewares
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 
-
-const uri =process.env.MONGO_URI || mongoconnection.url;
-
-const connectDB = async () => {
-  try {
-    await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log("MongoDB Connected");
-  } catch (error) {
-    console.error(error.message);
-    process.exit(1);
-  }
-};
-connectDB();
-
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
-
-
-
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
-app.use(logger("dev"));
+app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use("/", indexRouter);
-const jobOfferRouter = require("./routes/job_offer");
-
+// Utilisation des routes
+app.use('/', indexRouter);
 app.use("/job_offer", jobOfferRouter);
-app.use("/evaluations", evaluationRouter);
-app.use("/status", statusRouter);
-app.use('/event', eventrouter);
-//les middleware eli teb3in jsonwebtoken
-app.use("/applications", applicationRouter);
-app.use("/user", userRouter);
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: false }));
-app.use(function (req, res, next) {
+app.use('/applications', applicationRouter);
+app.use('/user', userRouter);
+
+// Gestion des erreurs
+app.use(function(req, res, next) {
   next(createError(404));
 });
 
-
-app.use(function (err, req, res, next) {
-  res.locals.title = "Error";
+app.use(function(err, req, res, next) {
+  res.locals.title = 'Error';
   res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
   res.status(err.status || 500);
-  res.render("error");
+  res.render('error');
 });
 
 module.exports = app;

@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 const multer = require("multer");
 //const OpenAI = require("openai"); // Utilisation de require
-const multer = require('multer');
+
 //const uploadimage= multer({dest:'uploadsimages/'})
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
