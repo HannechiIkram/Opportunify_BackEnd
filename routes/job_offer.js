@@ -10,6 +10,23 @@ const nodemailer = require('nodemailer');
 const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
 const isJobSeeker = accessControl(['job_seeker']);
+
+//samarrrr Route to fetch job offers by user company ID
+router.get('/company/joboffers', authMiddleware, async (req, res) => {
+  try {
+      const companyId = req.user.id;
+      const jobOffers = await job_offerModel.find({ company: companyId });
+      if (!jobOffers || jobOffers.length === 0) {
+          return res.status(200).json({ message: 'No job offers found' });
+      }
+      res.status(200).json(jobOffers);
+  } catch (error) {
+      console.error('Error fetching job offers by user company ID:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 // [UPDATE]
 router.put("/update/:id", async function (req, res) {
     try {
@@ -56,7 +73,7 @@ router.get("/getall",authMiddleware, userController.getall);
 
 router.get("/get/:id", userController.getbyid);
 //router.post("/add", userController.add);
-router.post('/add', authMiddleware, userController.add);
+router.post('/add',authMiddleware, userController.add);
 
 
 // Route pour envoyer les détails de l'offre et un message personnalisé par e-mail

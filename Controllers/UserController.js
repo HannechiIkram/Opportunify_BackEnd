@@ -180,9 +180,6 @@ const speedLimiter = slowDown({
 
 
 ///// login with Protection Against Brute Force Attacks
-/*
-*/
-
 
 const loginUser = async (req, res) => {
   try {
@@ -327,7 +324,7 @@ const loginUser = async (req, res) => {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
-};
+}; 
 
 
 /*
@@ -673,40 +670,6 @@ const getProfileCompanyById = async (req, res) => {
   }
 };
 
-/*
-const updateProfileJobSeekerById = async (profileId, updates) => {
-  try {
-    // Find the profile job seeker by ID
-    const profile = await ProfileJobSeeker.findById(profileId);
-
-    // Check if the profile exists
-    if (!profile) {
-      throw new Error('Profile job seeker not found');
-    }
-
-    // Check if updates include name, password, or image
-    if (updates.name || updates.password || updates.image) {
-      // Update corresponding user with matching email
-      await UserModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
-    }
-
-    // Check if updates include name, lastname, password, birthdate, address, image, phone, or role_jobseeker
-    if (updates.name || updates.lastname || updates.password || updates.birthdate || updates.address || updates.image || updates.phone || updates.role_jobseeker) {
-      // Update corresponding job seeker with matching email
-      await JobSeekerModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
-    }
-
-    // Exclude _id field from updates
-    delete updates._id;
-
-    // Update profile job seeker
-    const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(profileId, { $set: updates }, { new: true });
-
-    return updatedProfileJobSeeker;
-  } catch (error) {
-    throw error;
-  }
-};*/
 const updateProfileJobSeekerById = async (profileId, updates) => {
   try {
     // Find the profile job seeker by ID
@@ -716,6 +679,23 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     if (!profile) {
       throw new Error("Profile job seeker not found");
     }
+
+
+ // Validate input fields
+ if (!updates.name || updates.name.length < 6) {
+  throw new Error("Name is required and must be at least 6 characters long");
+}
+
+if (!updates.lastname || updates.lastname.length < 6) {
+  throw new Error("Lastname is required and must be at least 6 characters long");
+}
+
+if (!updates.address || updates.address.length < 6) {
+  throw new Error("Address is required and must be at least 6 characters long");
+}
+//
+
+
     const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(
       profileId,
       { $set: updates },

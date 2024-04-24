@@ -3,9 +3,9 @@
 const express = require("express");
 
 const Application = require("../models/application"); // Corrected import statement
+const nodemailer = require('nodemailer');
 
-// la recherche de tous les applications
-// la recherche de tous les applications
+
 ///samar
 async function getall(req, res) {
   try {
@@ -54,33 +54,112 @@ async function getById(req, res) {
     res.status(500).send({ error: 'Internal Server Error' });
   }
 }
+
+
+
+const transporter = nodemailer.createTransport({
+  service: 'hotmail',
+  auth: {
+      user: 'opportunify@outlook.com',
+      pass: 'Ahmed123.'
+  },
+  tls: {
+      rejectUnauthorized: false // Trust the self-signed certificate
+  }
+});
+
+// Fonction pour accepter une application
 async function acceptApplication(req, res) {
   try {
-      const { id } = req.params;
-      const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: true, rejected: false }, { new: true });
-      if (!updatedApplication) {
-          return res.status(404).json({ error: 'Application not found' });
-      }
-      res.status(200).json(updatedApplication);
+    const { id } = req.params;
+    
+    // Récupérer les détails de l'application
+    const application = await Application.findById(id);
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Récupérer l'e-mail associé à cette application
+    const jobSeekerEmail = application.email;
+    
+    // Vérifier l'e-mail récupéré dans la console
+    console.log('Email récupéré:', jobSeekerEmail);
+
+  // Send email notification
+  const mailOptions = {
+    from: 'opportunify@outlook.com',
+    to: jobSeekerEmail,
+    subject: 'Application Accepted ',
+    text: 'Your application has been accepted'
+  };
+
+    
+       // Send email notification
+       transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email notification:', error);
+        } else {
+          console.log('Email notification sent:', info.response);
+        }
+      });
+  
+    
+    // Mettre à jour l'état de l'application
+    const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: true, rejected: false }, { new: true });
+
+    res.status(200).json(updatedApplication);
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-// Mettre à jour une application pour la refuser
+
+// Fonction pour rejeter une application
 async function rejectApplication(req, res) {
   try {
-      const { id } = req.params;
-      const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true });
-      if (!updatedApplication) {
-          return res.status(404).json({ error: 'Application not found' });
-      }
-      res.status(200).json(updatedApplication);
+    const { id } = req.params;
+    
+    // Récupérer les détails de l'application
+    const application = await Application.findById(id);
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Récupérer l'e-mail associé à cette application
+    const jobSeekerEmail = application.email;
+    
+    // Vérifier l'e-mail récupéré dans la console
+    console.log('Email récupéré:', jobSeekerEmail);
+
+  // Send email notification
+  const mailOptions = {
+    from: 'opportunify@outlook.com',
+    to: jobSeekerEmail,
+    subject: 'Application Accepted ',
+    text: 'Your application has been accepted'
+  };
+
+    
+       // Send email notification
+       transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email notification:', error);
+        } else {
+          console.log('Email notification sent:', info.response);
+        }
+      });
+  
+    
+    // Mettre à jour l'état de l'application
+    const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true });
+
+    res.status(200).json(updatedApplication);
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-module.exports = { getall, add ,  getById , acceptApplication, rejectApplication };
+
+module.exports = { getall, add , getbyid, getById , acceptApplication, rejectApplication };
