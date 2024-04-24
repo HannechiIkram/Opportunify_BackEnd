@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -20,6 +21,8 @@ const { comparePassword, hashPassword } = require("../helpers/auth");
 
 const User = require("../models/user");
 const profileJobSeekerModel = require("../models/Profile_jobseeker");
+const { acceptUserByEmail2, rejectUserByEmail2 } = require("../Controllers/UserController");
+
 const JobSeeker = require("../models/user-jobseeker");
 const crypto = require("crypto");
 const {
@@ -507,19 +510,22 @@ router.post("/chatbot", (req, res) => {
 }
 main();*/
 // Route pour approuver un utilisateur
-router.post('/approve', async (req, res) => {
-  const { userId } = req.body;
-  try {
-    const user = await User.findById(userId);
-    if (user) {
-      user.isApproved = true;
-      await user.save();
-      res.status(200).json({ message: 'Utilisateur approuvé.' });
-    } else {
-      res.status(404).json({ message: 'Utilisateur introuvable.' });
-    }
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+
+/*app.put('/approve/:email', authMiddleware, (req, res) => {
+  const email = req.params.email;
+  const user = user.find(u => u.email === email);
+
+  if (user) {
+    user.isApproved = true;
+    res.status(200).send(`User ${email} has been approved.`);
+  } else {
+    res.status(404).send(`User ${email} not found.`);
   }
-});
+});*/
+// Route pour approuver un utilisateur
+router.put("/approve/:email",authMiddleware, acceptUserByEmail);
+
+// Route pour rejeter un utilisateur
+router.delete("/:email",authMiddleware, rejectUserByEmail);
+
 module.exports = router;
