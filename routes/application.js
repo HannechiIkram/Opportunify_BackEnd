@@ -18,6 +18,7 @@ const JobOffer = require('../models/job_offer');
 
 const authMiddleware = require ('../midill/authMiddleware');
 ////samar
+
 router.get('/application/user', authMiddleware, async (req, res) => {
   try {
       const userId = req.user.id;
@@ -33,7 +34,6 @@ router.get('/application/user', authMiddleware, async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 // [READ] 
 router.get("/getall",authMiddleware, applicationController.getall);
@@ -130,10 +130,10 @@ router.get("/search/date/:date",authMiddleware, async function (req, res) {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
 });
-router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]),async (req, res) => {
+router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
   try {
     const userId = req.user.id;
-    const { email, offerId ,motivation,disponibilite, salaire} = req.body; 
+    const { offerId ,motivation,disponibilite, salaire} = req.body; 
     const cvFile = req.files['cv'];
     if (!cvFile || !cvFile[0]) {
       return res.status(400).json({ error: 'CV file not provided' });
@@ -150,17 +150,8 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
 
     const status = "Under review";
     
-    // Check if the job seeker already exists
-    let jobSeeker = await UserJobSeeker.findOne({ email });
-    
-    // If the job seeker doesn't exist, create a new one
-    if (!jobSeeker) {
-      jobSeeker = new UserJobSeeker({
-        role_jobseeker: "student" // You might adjust this value based on your requirements
-        // Add other fields as needed
-      });
-      await jobSeeker.save();
-    }
+    // Récupérer l'e-mail du job seeker connecté depuis les données du token
+    const email = req.user.email;
 
     // Check if the offerId is valid
     if (!mongoose.Types.ObjectId.isValid(offerId)) {
@@ -221,6 +212,7 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
   }
 });
 
+  
   
 
 // GET route to retrieve application details by ID

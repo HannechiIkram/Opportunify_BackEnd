@@ -361,7 +361,7 @@ const loginUser = async (req, res) => {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
-};
+}; 
 
 /*
 const getAllProfileCompanies = async (req, res) => {
