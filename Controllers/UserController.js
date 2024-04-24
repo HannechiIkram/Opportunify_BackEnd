@@ -246,14 +246,9 @@ const loginUser = async (req, res) => {
  const existingProfile = await ProfileJobSeeker.findOne({ email });
 
  if (existingProfile) {
-   // If a profile exists, use its _id
+   // If a profile exists, use its _id  
    profileId = existingProfile._id;
  } else {
-
-
-
-
-
       // Create a profile for the job seeker
       const profile = new ProfileJobSeeker({
         userId: jobSeekerId,
@@ -286,7 +281,14 @@ const loginUser = async (req, res) => {
       if (!company) {
         return res.status(400).json({ error: "Company not found" });
       }
- 
+
+      const existingProfileCompany = await ProfileCompany.findOne({ email });
+
+      if (existingProfileCompany) {
+        // If a profile exists, use its _id  
+        company_profileId = existingProfileCompany._id;
+      } else {
+
       // Create a profile for the company
       const profileCompany = new ProfileCompany({
         userCid: company._id, // Assuming the company model has '_id' as the primary key
@@ -306,7 +308,7 @@ const loginUser = async (req, res) => {
       // Save the profile to the database
       const savedProfileCompany = await profileCompany.save();
       company_profileId = savedProfileCompany._id;
-    }
+    }}
 
     // Compare the provided password with the stored hashed password
     const match = await comparePassword(password, user.password);
@@ -705,40 +707,6 @@ const getProfileCompanyById = async (req, res) => {
   }
 };
 
-/*
-const updateProfileJobSeekerById = async (profileId, updates) => {
-  try {
-    // Find the profile job seeker by ID
-    const profile = await ProfileJobSeeker.findById(profileId);
-
-    // Check if the profile exists
-    if (!profile) {
-      throw new Error('Profile job seeker not found');
-    }
-
-    // Check if updates include name, password, or image
-    if (updates.name || updates.password || updates.image) {
-      // Update corresponding user with matching email
-      await UserModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
-    }
-
-    // Check if updates include name, lastname, password, birthdate, address, image, phone, or role_jobseeker
-    if (updates.name || updates.lastname || updates.password || updates.birthdate || updates.address || updates.image || updates.phone || updates.role_jobseeker) {
-      // Update corresponding job seeker with matching email
-      await JobSeekerModel.findOneAndUpdate({ email: profile.email }, { $set: updates });
-    }
-
-    // Exclude _id field from updates
-    delete updates._id;
-
-    // Update profile job seeker
-    const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(profileId, { $set: updates }, { new: true });
-
-    return updatedProfileJobSeeker;
-  } catch (error) {
-    throw error;
-  }
-};*/
 const updateProfileJobSeekerById = async (profileId, updates) => {
   try {
     // Find the profile job seeker by ID
@@ -748,6 +716,23 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     if (!profile) {
       throw new Error("Profile job seeker not found");
     }
+
+
+ // Validate input fields
+ if (!updates.name || updates.name.length < 6) {
+  throw new Error("Name is required and must be at least 6 characters long");
+}
+
+if (!updates.lastname || updates.lastname.length < 6) {
+  throw new Error("Lastname is required and must be at least 6 characters long");
+}
+
+if (!updates.address || updates.address.length < 6) {
+  throw new Error("Address is required and must be at least 6 characters long");
+}
+//
+
+
     const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(
       profileId,
       { $set: updates },

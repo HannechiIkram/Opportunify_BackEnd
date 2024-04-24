@@ -416,17 +416,7 @@ router.put("/events/:id", updateEvent);
 
 // Supprimer un événement
 router.delete("/events/:id", deleteEvent);
-/*
-router.post('/addimage', upload.single('image'), function (req, res, next) {
-  // Access the uploaded file using req.file
-  if (!req.file) {
-    return res.status(400).send('No files were uploaded.');
-  }
 
-  // File upload successful, send response
-  res.send('File uploaded successfully.');
-});
-*/
 // POST route to upload image for profile job seeker
 router.post('/profileJobSeeker_image/:profileId', upload.single('image'), async (req, res) => {
   try {
