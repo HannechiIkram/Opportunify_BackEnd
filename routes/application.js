@@ -18,24 +18,17 @@ const JobOffer = require('../models/job_offer');
 
 const authMiddleware = require ('../midill/authMiddleware');
 ////samar
-// Route to get applications of the connected user using their ID from the decoded token
 router.get('/application/user', authMiddleware, async (req, res) => {
   try {
-      // Retrieve the user ID from the decoded token attached to the request
       const userId = req.user.id;
 
-      // Find applications associated with the user's ID
       const applications = await Application.find({ job_seeker: userId });
 
-      // Check if applications were found
       if (!applications || applications.length === 0) {
-          return res.status(404).json({ error: 'No applications found for the user' });
+          return res.status(200).json({ message: 'No applications found for the user' });
       }
-
-      // Return the applications
       res.status(200).json(applications);
   } catch (error) {
-      // Handle errors
       console.error('Error fetching applications by user ID:', error);
       res.status(500).json({ error: 'Internal Server Error' });
   }
