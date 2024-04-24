@@ -119,29 +119,25 @@ async function acceptApplication(req, res) {
 async function rejectApplication(req, res) {
   try {
     const { id } = req.params;
-        // Récupérer les détails de l'application
-        const application = await Application.findById(id);
-        if (!application) {
-          return res.status(404).json({ error: 'Application not found' });
-        }
-    // Récupérer l'e-mail du demandeur d'emploi lié à cette application
-    const jobSeekerEmail = updatedApplication.job_seeker.email;
-    // Mettre à jour l'application en tant que rejetée
-    const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true }).populate('job_seeker');
-
-    // Vérifier si l'application a été trouvée
-    if (!updatedApplication) {
+    
+    // Récupérer les détails de l'application
+    const application = await Application.findById(id);
+    if (!application) {
       return res.status(404).json({ error: 'Application not found' });
     }
-// Vérifier l'e-mail récupéré dans la console
-console.log('Email récupéré:', jobSeekerEmail);
+
+    // Récupérer l'e-mail associé à cette application
+    const jobSeekerEmail = application.email;
     
+    // Vérifier l'e-mail récupéré dans la console
+    console.log('Email récupéré:', jobSeekerEmail);
+
   // Send email notification
   const mailOptions = {
     from: 'opportunify@outlook.com',
     to: jobSeekerEmail,
-    subject: 'Application Rejected ',
-    text: 'Your application has been rejected'
+    subject: 'Application Accepted ',
+    text: 'Your application has been accepted'
   };
 
     
@@ -154,8 +150,10 @@ console.log('Email récupéré:', jobSeekerEmail);
         }
       });
   
-   
-    // Envoyer une réponse avec l'application mise à jour
+    
+    // Mettre à jour l'état de l'application
+    const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true });
+
     res.status(200).json(updatedApplication);
   } catch (err) {
     console.error(err);
