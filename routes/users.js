@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+const OpenAI = require("openai");
 
 const multer = require('multer');
 
@@ -519,5 +520,41 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
+const openai = new OpenAI({
+  apiKey: "sk-proj-0OPaRvMhBzLwLcbohb24T3BlbkFJNvTVQWcRgKv3F39XUasw", // Use environment variable for API key
+});
+
+
+// Global variable to hold the conversation history
+let conversationHistory = [
+  { role: "system", content: "You are a helpful assistant." },
+];
+
+router.post("/ask", async (req, res) => {
+  const userMessage = req.body.message;
+
+  // Update conversation history with the user's message
+  conversationHistory.push({ role: "user", content: userMessage });
+
+  try {
+    // Request a completion from OpenAI based on the updated conversation history
+    const completion = await openai.chat.completions.create({
+      messages: conversationHistory,
+      model: "gpt-3.5-turbo",
+    });
+
+    // Extract the response
+    const botResponse = completion.choices[0].message.content;
+
+    // Update conversation history with the assistant's response
+    conversationHistory.push({ role: "assistant", content: botResponse });
+
+    // Send the assistant's response back to the client
+    res.json({ message: botResponse });
+  } catch (error) {
+    console.error("Error calling OpenAI: ", error);
+    res.status(500).send("Error generating response from OpenAI");
+  }
+});
 
 module.exports = router;
