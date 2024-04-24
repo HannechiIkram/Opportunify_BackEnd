@@ -1,5 +1,8 @@
+
+
 var express = require("express");
 var router = express.Router();
+
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -137,7 +140,7 @@ router.post("/reset-password", resetPassword);
 
 
 
-router.delete("/delete/:id",authMiddleware, async function (req, res) {
+router.delete("/delete/:id",authMiddleware,isAdmin, async function (req, res) {
   try {
     const deleted = await User.findOneAndDelete({ _id: req.params.id });
     if (!deleted) {
@@ -150,10 +153,10 @@ router.delete("/delete/:id",authMiddleware, async function (req, res) {
   }
 });
 // Accept user route
-router.put("/accept/:email", authMiddleware, acceptUserByEmail);
+router.put("/accept/:email", authMiddleware,isAdmin, acceptUserByEmail);
 
 // Reject user route
-router.put("/reject/:email", authMiddleware, rejectUserByEmail);
+router.put("/reject/:email", authMiddleware, isAdmin,rejectUserByEmail);
 
 // Route for initiating Facebook authentication
 router.get("/auth/facebook", passport.authenticate("facebook"));
@@ -360,7 +363,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 // Route to block/unblock user
-router.put("/block/:id", authMiddleware, async (req, res) => {
+router.put("/block/:id", authMiddleware,isAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -379,7 +382,7 @@ router.put("/block/:id", authMiddleware, async (req, res) => {
 });
 
 // Route pour débloquer un utilisateur
-router.put("/unblock/:id", authMiddleware, async (req, res) => {
+router.put("/unblock/:id", authMiddleware, isAdmin,async (req, res) => {
   const userId = req.params.id;
 
   try {

@@ -13,12 +13,19 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const JobOffer = require('../models/job_offer'); 
 
+/////// for permissions
+
+const accessControl = require('../midill/accescontrol');
+const isAdmin = accessControl(['admin']);
+const isCompany = accessControl(['company']);
+const isJobSeeker = accessControl(['job_seeker']);
+
 
 
 
 const authMiddleware = require ('../midill/authMiddleware');
 ////samar
-router.get('/application/user', authMiddleware, async (req, res) => {
+router.get('/application/user', authMiddleware, isJobSeeker,async (req, res) => {
   try {
       const userId = req.user.id;
 
@@ -43,7 +50,7 @@ router.get("/getall",authMiddleware, applicationController.getall);
 router.post("/new", validate, applicationController.add);
 
 // [UPDATE]
-router.put("/update/:id", authMiddleware, async function (req, res) {
+router.put("/update/:id", authMiddleware,isJobSeeker, async function (req, res) {
   try {
     console.log("Received PUT request to update application:", req.body); // Affiche les données reçues dans la requête PUT
     const applicationBeforeUpdate = await Application.findById(req.params.id);
@@ -130,7 +137,7 @@ router.get("/search/date/:date",authMiddleware, async function (req, res) {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
 });
-router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]),async (req, res) => {
+router.post('/apply', authMiddleware,isJobSeeker, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]),async (req, res) => {
   try {
     const userId = req.user.id;
     const { email, offerId ,motivation,disponibilite, salaire} = req.body; 

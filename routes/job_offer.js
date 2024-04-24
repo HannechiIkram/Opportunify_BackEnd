@@ -3,23 +3,26 @@ const router = express.Router();
 const userController = require("../Controllers/job-offerController");
 const authMiddleware = require ('../midill/authMiddleware');
 const job_offerModel = require("../models/job_offer");
-const accessControl = require('../midill/accescontrol');
 const User = require('../models/user');
 const nodemailer = require('nodemailer');
 
+const accessControl = require('../midill/accescontrol');
 const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
 const isJobSeeker = accessControl(['job_seeker']);
 
 //samarrrr Route to fetch job offers by user company ID
-router.get('/company/joboffers', authMiddleware, async (req, res) => {
+router.get('/company/joboffers',authMiddleware,isCompany, async (req, res) => {
+  
   try {
-      const companyId = req.user.id;
+          const companyId = req.user.id;
       const jobOffers = await job_offerModel.find({ company: companyId });
+      
       if (!jobOffers || jobOffers.length === 0) {
           return res.status(200).json({ message: 'No job offers found' });
       }
       res.status(200).json(jobOffers);
+     
   } catch (error) {
       console.error('Error fetching job offers by user company ID:', error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -69,7 +72,7 @@ router.get("/getoffershomepage",userController.getoffershomepage);
           res.status(500).json({ error: 'Internal Server Error' });
       }
   });
-router.get("/getall",authMiddleware, userController.getall);
+router.get("/getall",authMiddleware,isJobSeeker, userController.getall);
 
 router.get("/get/:id", userController.getbyid);
 //router.post("/add", userController.add);

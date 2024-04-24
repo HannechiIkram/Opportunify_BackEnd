@@ -326,7 +326,9 @@ const loginUser = async (req, res) => {
         jobSeekerId,
         profileId,
         company_profileId,
-      },
+        /////samar for permissions
+        role:user.role
+            },
       process.env.JWT_SECRET,
       { expiresIn: "180m" } // Adjust the expiration time as needed
       // Adjust the expiration time as needed
