@@ -5,12 +5,19 @@ const express = require("express");
 const Application = require("../models/application"); // Corrected import statement
 
 // la recherche de tous les applications
+///samar
 async function getall(req, res) {
   try {
-    const data = await Application.find().populate('job_seeker', 'name email');
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized - User not logged in' });
+    }
+
+    const data = await Application.find();
     res.send(data);
   } catch (err) {
-    res.send(err);
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
@@ -76,4 +83,4 @@ async function rejectApplication(req, res) {
   }
 }
 
-module.exports = { getall, add ,  getById , acceptApplication, rejectApplication };
+module.exports = { getall, add , getbyid, getById , acceptApplication, rejectApplication };
