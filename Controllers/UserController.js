@@ -218,7 +218,6 @@ const speedLimiter = slowDown({
 ///// login with Protection Against Brute Force Attacks
 /*
  */
-
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -246,14 +245,9 @@ const loginUser = async (req, res) => {
  const existingProfile = await ProfileJobSeeker.findOne({ email });
 
  if (existingProfile) {
-   // If a profile exists, use its _id
+   // If a profile exists, use its _id  
    profileId = existingProfile._id;
  } else {
-
-
-
-
-
       // Create a profile for the job seeker
       const profile = new ProfileJobSeeker({
         userId: jobSeekerId,
@@ -286,7 +280,14 @@ const loginUser = async (req, res) => {
       if (!company) {
         return res.status(400).json({ error: "Company not found" });
       }
- 
+
+      const existingProfileCompany = await ProfileCompany.findOne({ email });
+
+      if (existingProfileCompany) {
+        // If a profile exists, use its _id  
+        company_profileId = existingProfileCompany._id;
+      } else {
+
       // Create a profile for the company
       const profileCompany = new ProfileCompany({
         userCid: company._id, // Assuming the company model has '_id' as the primary key
@@ -306,7 +307,7 @@ const loginUser = async (req, res) => {
       // Save the profile to the database
       const savedProfileCompany = await profileCompany.save();
       company_profileId = savedProfileCompany._id;
-    }
+    }}
 
     // Compare the provided password with the stored hashed password
     const match = await comparePassword(password, user.password);
