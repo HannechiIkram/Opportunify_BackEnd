@@ -18,7 +18,6 @@ const JobOffer = require('../models/job_offer');
 
 const authMiddleware = require ('../midill/authMiddleware');
 ////samar
-
 router.get('/application/user', authMiddleware, async (req, res) => {
   try {
       const userId = req.user.id;
@@ -34,6 +33,7 @@ router.get('/application/user', authMiddleware, async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 // [READ] 
 router.get("/getall",authMiddleware, applicationController.getall);
@@ -130,10 +130,10 @@ router.get("/search/date/:date",authMiddleware, async function (req, res) {
         rejectUnauthorized: false // Trust the self-signed certificate
     }
 });
-router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]), async (req, res) => {
+router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }, { name: 'coverLetter', maxCount: 1 }]),async (req, res) => {
   try {
     const userId = req.user.id;
-    const { offerId ,motivation,disponibilite, salaire} = req.body; 
+    const { email, offerId ,motivation,disponibilite, salaire} = req.body; 
     const cvFile = req.files['cv'];
     if (!cvFile || !cvFile[0]) {
       return res.status(400).json({ error: 'CV file not provided' });
@@ -150,8 +150,17 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
 
     const status = "Under review";
     
-    // Récupérer l'e-mail du job seeker connecté depuis les données du token
-    const email = req.user.email;
+    // Check if the job seeker already exists
+    let jobSeeker = await UserJobSeeker.findOne({ email });
+    
+    // If the job seeker doesn't exist, create a new one
+    if (!jobSeeker) {
+      jobSeeker = new UserJobSeeker({
+        role_jobseeker: "student" // You might adjust this value based on your requirements
+        // Add other fields as needed
+      });
+      await jobSeeker.save();
+    }
 
     // Check if the offerId is valid
     if (!mongoose.Types.ObjectId.isValid(offerId)) {
@@ -213,7 +222,6 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
 });
 
   
-  
 
 // GET route to retrieve application details by ID
 router.get('/get/:id', authMiddleware,async (req, res) => {
@@ -263,9 +271,8 @@ const fs = require('fs');
 const app = express();
 
 // ... other routes
-/*
 
-router.get('/download-cv/:applicationId', async (req, res) => {
+app.get('/download-cv/:applicationId', async (req, res) => {
   try {
     const { applicationId } = req.params;
 
@@ -282,7 +289,7 @@ router.get('/download-cv/:applicationId', async (req, res) => {
     }
 
     res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
-    res.setHeader('Content-Disposition', attachment; filename="${application.cv}"); // Allow customization
+    res.setHeader('Content-Disposition', `attachment; filename="${application.cv}"`); // Allow customization
 
     const cvStream = fs.createReadStream(cvPath);
     cvStream.pipe(res);
@@ -309,16 +316,15 @@ app.get('/download-cover-letter/:applicationId', async (req, res) => {
     }
 
     res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
-    res.setHeader('Content-Disposition', attachment; filename="${application.coverLetter}"); // Allow customization
+    res.setHeader('Content-Disposition', `attachment; filename="${application.coverLetter}"`); // Allow customization
 
     const coverLetterStream = fs.createReadStream(coverLetterPath);
     coverLetterStream.pipe(res);
-  } 
-  catch (error) {
+  } catch (error) {
     console.error('Error downloading cover letter:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
-});*/
+});
 
 router.get('/applications/search/joboffertitle',authMiddleware, async (req, res) => {
   try {

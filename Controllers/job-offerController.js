@@ -82,10 +82,11 @@ async function add(req, res) {
   }
 }*/
 // Créer une nouvelle offre
+
 // Créer une nouvelle offre
 async function add(req, res) {
   try {
-    const userId = req.user._id; // ID de l'utilisateur connecté
+    const companyId = req.user.id; // ID de l'utilisateur connecté
 
     // Destructure the required fields from req.body
     const {
@@ -118,7 +119,7 @@ async function add(req, res) {
       field,
       salary_informations,
       deadline,
-      company: userId // Associé à l'utilisateur de l'entreprise connecté
+      company: companyId // Associé à l'utilisateur de l'entreprise connecté
     });
 
     await newJobOffer.save();
