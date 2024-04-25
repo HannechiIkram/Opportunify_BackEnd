@@ -13,12 +13,24 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const JobOffer = require('../models/job_offer'); 
 
-
-
-
 const authMiddleware = require ('../midill/authMiddleware');
-////samar
 
+// saamrrr applications ljob offer mou3ayen
+router.get('/applicationperoffer/:offerId', authMiddleware,async (req, res) => {
+  const offerId = req.params.offerId;
+  try {
+      const applications = await Application.findOne({ job_offer: offerId }).populate('job_offer').exec();
+      if (!applications) {
+          return res.status(201).json({ message: 'Applications not found' });
+      }
+      res.json(applications);
+  } catch (error) {
+      console.error('Error fetching application:', error);
+      res.status(500).json({ message: 'An error occurred while fetching the application' });
+  }
+});
+
+////applications mtaa el user eli connecté
 router.get('/application/user', authMiddleware, async (req, res) => {
   try {
       const userId = req.user.id;
