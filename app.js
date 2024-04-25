@@ -7,6 +7,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const mongoconnection = require("./database/mongodb.json");
 const cors = require('cors');
+const evaluationRouter = require('./routes/evaluations');
+
 const path = require('path');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
@@ -51,6 +53,8 @@ app.use('/', indexRouter);
 app.use("/job_offer", jobOfferRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
+app.use('/evaluations', evaluationRouter)
+
 
 // Gestion des erreurs
 app.use(function(req, res, next) {
