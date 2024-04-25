@@ -2,6 +2,7 @@ const mongoose = require ('mongoose');
 const {Schema} = mongoose
 ///ikram
 //ikram
+
 const userCompanySchema = new Schema({
   name: String,
   email: {
@@ -27,8 +28,10 @@ image: {
   // Autres options de champ si nécessaire...
 },
 accepted: { type: Boolean, default: true },
-isApproved: { type: Boolean, default: false }, // Par défaut, non approuvé
-
+isApproved: {
+  type: Boolean,
+  default: false,
+},
 
 })
 

@@ -1,5 +1,9 @@
 var express = require("express");
 var router = express.Router();
+const OpenAI = require("openai");
+
+const multer = require('multer');
+
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -20,6 +24,8 @@ const { comparePassword, hashPassword } = require("../helpers/auth");
 
 const User = require("../models/user");
 const profileJobSeekerModel = require("../models/Profile_jobseeker");
+const { acceptUserByEmail2, rejectUserByEmail2 } = require("../Controllers/UserController");
+
 const JobSeeker = require("../models/user-jobseeker");
 const crypto = require("crypto");
 const {
@@ -497,19 +503,58 @@ router.post("/chatbot", (req, res) => {
 }
 main();*/
 // Route pour approuver un utilisateur
-router.post('/approve', async (req, res) => {
-  const { userId } = req.body;
+
+/*app.put('/approve/:email', authMiddleware, (req, res) => {
+  const email = req.params.email;
+  const user = user.find(u => u.email === email);
+
+  if (user) {
+    user.isApproved = true;
+    res.status(200).send(`User ${email} has been approved.`);
+  } else {
+    res.status(404).send(`User ${email} not found.`);
+  }
+});*/
+// Route pour approuver un utilisateur
+router.put("/approve/:email",authMiddleware, acceptUserByEmail);
+
+// Route pour rejeter un utilisateur
+router.delete("/:email",authMiddleware, rejectUserByEmail);
+const openai = new OpenAI({
+  apiKey: "sk-proj-0OPaRvMhBzLwLcbohb24T3BlbkFJNvTVQWcRgKv3F39XUasw", // Use environment variable for API key
+});
+
+
+// Global variable to hold the conversation history
+let conversationHistory = [
+  { role: "system", content: "You are a helpful assistant." },
+];
+
+router.post("/ask", async (req, res) => {
+  const userMessage = req.body.message;
+
+  // Update conversation history with the user's message
+  conversationHistory.push({ role: "user", content: userMessage });
+
   try {
-    const user = await User.findById(userId);
-    if (user) {
-      user.isApproved = true;
-      await user.save();
-      res.status(200).json({ message: 'Utilisateur approuvé.' });
-    } else {
-      res.status(404).json({ message: 'Utilisateur introuvable.' });
-    }
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    // Request a completion from OpenAI based on the updated conversation history
+    const completion = await openai.chat.completions.create({
+      messages: conversationHistory,
+      model: "gpt-3.5-turbo",
+    });
+
+    // Extract the response
+    const botResponse = completion.choices[0].message.content;
+
+    // Update conversation history with the assistant's response
+    conversationHistory.push({ role: "assistant", content: botResponse });
+
+    // Send the assistant's response back to the client
+    res.json({ message: botResponse });
+  } catch (error) {
+    console.error("Error calling OpenAI: ", error);
+    res.status(500).send("Error generating response from OpenAI");
   }
 });
+
 module.exports = router;

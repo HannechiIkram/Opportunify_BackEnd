@@ -263,8 +263,9 @@ const fs = require('fs');
 const app = express();
 
 // ... other routes
+/*
 
-app.get('/download-cv/:applicationId', async (req, res) => {
+router.get('/download-cv/:applicationId', async (req, res) => {
   try {
     const { applicationId } = req.params;
 
@@ -281,7 +282,7 @@ app.get('/download-cv/:applicationId', async (req, res) => {
     }
 
     res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
-    res.setHeader('Content-Disposition', `attachment; filename="${application.cv}"`); // Allow customization
+    res.setHeader('Content-Disposition', attachment; filename="${application.cv}"); // Allow customization
 
     const cvStream = fs.createReadStream(cvPath);
     cvStream.pipe(res);
@@ -308,15 +309,16 @@ app.get('/download-cover-letter/:applicationId', async (req, res) => {
     }
 
     res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
-    res.setHeader('Content-Disposition', `attachment; filename="${application.coverLetter}"`); // Allow customization
+    res.setHeader('Content-Disposition', attachment; filename="${application.coverLetter}"); // Allow customization
 
     const coverLetterStream = fs.createReadStream(coverLetterPath);
     coverLetterStream.pipe(res);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error downloading cover letter:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+});*/
 
 router.get('/applications/search/joboffertitle',authMiddleware, async (req, res) => {
   try {

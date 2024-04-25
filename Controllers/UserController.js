@@ -1,8 +1,7 @@
-const UserModel = require("../models/user");
+const UserModel = require('../models/user');
 const mongoose = require("mongoose"); // Importez Mongoose ici
-const UserCompanyModel = require("../models/user-company");
-const User = require("../models/user");
-
+const UserCompanyModel = require('../models/user-company');
+const User = require('../models/user');
 const JobSeekerModel = require("../models/user-jobseeker");
 const ProfileJobSeeker = require("../models/Profile_jobseeker");
 const ProfileCompany = require("../models/Profile_company");
@@ -17,33 +16,19 @@ const InstagramStrategy = require("passport-instagram").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
-
-//ajouter un user quelconque( pour l'admin peut etre)
 const registerUser = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      lastname,
-      role,
-      description,
-      phone,
-      phoneNumber,
-      socialMedia,
-      address,
-      imageUrl,
-    } = req.body;
+    const { name,email, password,lastname, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
 
     // Validate input
-    if (!email || !password || !role || !name) {
-      return res.status(400).json({ error: "All fields are required" });
+    if (!email || !password || !role||!name) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "Email is already taken" });
+      return res.status(400).json({ error: 'Email is already taken' });
     }
 
     // Hash the password
@@ -54,15 +39,15 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
-      image: imageUrl, // Add image URL to user data
+      role, 
+      image: imageUrl,// Add image URL to user data
 
       address,
       phone,
       phoneNumber,
       socialMedia,
       lastname,
-      description,
+      description
     });
 
     // Return response
@@ -72,60 +57,41 @@ const registerUser = async (req, res) => {
       role: newUser.role,
     });
   } catch (error) {
-    console.error("Error during user registration:", error);
+    console.error('Error during user registration:', error);}
   }
-};
+
+
 
 // Import the transporter configuration (make sure the path is correct)
-const transporter = require("../nodemailer-config");
-const registerUserCompany = async (req, res) => {
+const transporter = require('../nodemailer-config');
+;const registerUserCompany = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      matriculeFiscale,
-      description,
-      socialMedia,
-      address,
-      phoneNumber,
-      domainOfActivity,
-      image,
-    } = req.body;
+    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity, image } = req.body;
 
     // Vérification de la présence des champs obligatoires
     if (!name || !email || !password || !phoneNumber) {
-      return res
-        .status(400)
-        .json({ error: "Name, email, and password are required" });
+      return res.status(400).json({ error: 'Name, email, and password are required' });
     }
 
     // Validation de la longueur du mot de passe
     if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ error: "Password must be at least 6 characters long" });
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
     // Vérification si l'email est déjà pris
     const exist = await UserCompanyModel.findOne({ email });
     if (exist) {
-      return res.status(400).json({ error: "Email is already taken" });
+      return res.status(400).json({ error: 'Email is already taken' });
     }
 
     // Validation du numéro de téléphone
     if (!/^\d{1,12}$/.test(phoneNumber)) {
-      return res.status(400).json({
-        error:
-          "Phone number should contain only digits and not exceed 12 characters",
-      });
+      return res.status(400).json({ error: 'Phone number should contain only digits and not exceed 12 characters' });
     }
 
     // Validation du domaine d'activité
     if (!/^[a-zA-Z]+$/.test(domainOfActivity)) {
-      return res
-        .status(400)
-        .json({ error: "Domain of activity should contain only letters" });
+      return res.status(400).json({ error: 'Domain of activity should contain only letters' });
     }
 
     // Validation des liens des réseaux sociaux
@@ -134,58 +100,55 @@ const registerUserCompany = async (req, res) => {
       return res.status(400).json({ error: socialMediaValidation.error });
     }
 
-    // Validation de la description
-    if (!/^[a-zA-Z\s\n]+$/.test(description)) {
-      return res.status(400).json({
-        error:
-          "Description should contain only letters, spaces, and paragraphs",
-      });
-    }
-    // Check if user already existstry {
-    const existingUser = await UserModel.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email is already taken" });
-    }
-
-    const imageUrl = req.file ? req.file.path : ""; // If req.file is undefined, set imageUrl to an empty string
-
-    const hashedPassword = await hashPassword(password);
-
-    const newCompanyUser = await UserCompanyModel.create({
-      name,
-      email,
-      password: hashedPassword,
-      matriculeFiscale,
-      description,
-      socialMedia,
-      address,
-      phoneNumber,
-      domainOfActivity,
-      image: imageUrl, // Add image URL to user data
-    });
-
-    const newUser = await UserModel.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: "company",
-      matriculeFiscale,
-      description,
-      socialMedia,
-      address,
-      phoneNumber,
-      domainOfActivity,
-      image: imageUrl, // Add image URL to user data
-    });
-
-    return res
-      .status(201)
-      .json({ msg: "User added successfully", newUser, newCompanyUser });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal Server Error" });
+   // Validation de la description
+if (!/^[a-zA-Z\s\n]+$/.test(description)) {
+  return res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
+}
+// Check if user already existstry {
+  const existingUser = await UserModel.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ error: 'Email is already taken' });
   }
-};
+  
+  const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
+
+  const hashedPassword = await hashPassword(password);
+
+  const newCompanyUser = await UserCompanyModel.create({
+    name,
+    email,
+    password: hashedPassword,
+    matriculeFiscale,
+    description,
+    socialMedia,
+    address,
+    phoneNumber,
+    domainOfActivity,
+    image: imageUrl // Add image URL to user data
+
+  });
+
+  const newUser = await UserModel.create({
+    name,
+    email,
+    password: hashedPassword,
+    role: 'company',
+    matriculeFiscale,
+    description,
+    socialMedia,
+    address,
+    phoneNumber,
+    domainOfActivity,
+    image: imageUrl // Add image URL to user data
+
+  });
+
+  return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });
+} catch (error) {
+  console.error(error);
+  return res.status(500).json({ error: 'Internal Server Error' });
+}
+}
 // Function to validate social media links
 const validateSocialMediaLinks = (socialMedia) => {
   for (const key in socialMedia) {
@@ -196,7 +159,7 @@ const validateSocialMediaLinks = (socialMedia) => {
       return { error: `${key} should be a valid URL` };
     }
   }
-  ///
+///
   return { valid: true };
 };
 
@@ -205,7 +168,7 @@ const validateSocialMediaLinks = (socialMedia) => {
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Max 5 requests per windowMs
-  message: "Too many login attempts, please try again later.",
+  message: 'Too many login attempts, please try again later.',
 });
 
 // Set up slowing down of requests after 3 failed attempts within the windowMs
@@ -215,9 +178,9 @@ const speedLimiter = slowDown({
   delayMs: () => 180000, // Delay subsequent requests by 3 minutes
 });
 
+
 ///// login with Protection Against Brute Force Attacks
-/*
- */
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -362,6 +325,7 @@ const loginUser = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }; 
+
 
 /*
 const getAllProfileCompanies = async (req, res) => {
@@ -916,8 +880,46 @@ const rejectUserByEmail = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+const acceptUserByEmail2 = async (req, res) => {
+  try {
+    const { email } = req.params;
 
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé." });
+    }
+
+    user.isApproved = true;
+    await user.save();
+
+    res.status(200).json({ message: "Utilisateur approuvé avec succès." });
+  } catch (error) {
+    console.error("Erreur lors de l'approbation de l'utilisateur :", error);
+    res.status(500).json({ message: "Erreur interne du serveur." });
+  }
+};
+
+const rejectUserByEmail2 = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const user = await User.findOneAndDelete({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé." });
+    }
+
+    res.status(200).json({ message: "Utilisateur rejeté avec succès." });
+  } catch (error) {
+    console.error("Erreur lors du rejet de l'utilisateur :", error);
+    res.status(500).json({ message: "Erreur interne du serveur." });
+  }
+};
 module.exports = {
+  acceptUserByEmail2,
+  rejectUserByEmail2,
+
   rejectUserByEmail,
   acceptUserByEmail,
   getAllJobSeekerProfiles,
