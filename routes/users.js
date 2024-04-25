@@ -165,6 +165,7 @@ router.get("/getUser/:userId", getUserById);
 
 //
 //router.post('/registercompany',  createUserCompany)
+router.post('/createUser', createUser);
 router.get("/", getUsers);
 router.get("/company", authMiddleware, getUserCompany);
 router.post("/registerCompany", registerUserCompany);
