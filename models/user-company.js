@@ -32,6 +32,8 @@ isApproved: {
   type: Boolean,
   default: false,
 },
+isValidated: { type: Boolean, default: false }, // Nouveau champ pour validation
+
 
 })
 

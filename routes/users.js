@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const OpenAI = require("openai");
+const UserCompanyModel = require('../models/user-company');
 
 const multer = require('multer');
 
@@ -521,7 +522,7 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
 const openai = new OpenAI({
-  apiKey: "sk-proj-qfspLCrEwzos4a5GwltrT3BlbkFJZSHRmQnvMS7Vh9aC8JI3", // Use environment variable for API key
+  apiKey: "sk-proj-BDyc8OoJM1F1WMqI454LT3BlbkFJLbTOEShiWfwZwLvx6vOY", // Use environment variable for API key
 });
 
 
@@ -556,5 +557,20 @@ router.post("/ask", async (req, res) => {
     res.status(500).send("Error generating response from OpenAI");
   }
 });
+router.post('/validateUser', async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const user = await UserCompanyModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    user.isValidated = true;
+    await user.save();
+    res.json({ msg: 'User has been validated.' });
+  } catch (error) {
+    res.status(500).json({ error: error.msg });
+  }
+});
+
 
 module.exports = router;
