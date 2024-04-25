@@ -19,11 +19,11 @@ const authMiddleware = require ('../midill/authMiddleware');
 router.get('/applicationperoffer/:offerId', authMiddleware,async (req, res) => {
   const offerId = req.params.offerId;
   try {
-      const applications = await Application.findOne({ job_offer: offerId }).populate('job_offer').exec();
+      const applications = await Application.find({ job_offer: offerId }).populate('job_offer').exec();
       if (!applications) {
           return res.status(201).json({ message: 'Applications not found' });
       }
-      res.json(applications);
+      res.send(applications);
   } catch (error) {
       console.error('Error fetching application:', error);
       res.status(500).json({ message: 'An error occurred while fetching the application' });
@@ -46,6 +46,7 @@ router.get('/application/user', authMiddleware, async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 // [READ] 
 router.get("/getall",authMiddleware, applicationController.getall);
