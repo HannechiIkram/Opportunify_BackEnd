@@ -58,17 +58,23 @@ router.delete("/delete/:id", async function (req, res) {
 router.get("/getoffershomepage",userController.getoffershomepage);
 
 
-    // Search based on the title
-    router.get("/search/title/:title", authMiddleware, async function (req, res) {
-      try {
-          const title = req.params.title;
-          const joboffers = await job_offerModel.find({ title });
-          res.json(joboffers);
-      } catch (err) {
-          console.error(err);
-          res.status(500).json({ error: 'Internal Server Error' });
-      }
-  });
+router.get("/search", authMiddleware, async function (req, res) {
+  try {
+      const { title, workplaceType, location, field } = req.query;
+      let query = {};
+
+      if (title) query.title = title;
+      if (workplaceType) query.workplace_type = workplaceType;
+      if (location) query.lieu = location;
+      if (field) query.field = field;
+
+      const jobOffers = await job_offerModel.find(query);
+      res.json(jobOffers);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 router.get("/getall",authMiddleware, userController.getall);
 
 router.get("/get/:id", userController.getbyid);
