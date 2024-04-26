@@ -1,8 +1,10 @@
 var express = require("express");
 var router = express.Router();
-const multer = require("multer");
-//const OpenAI = require("openai"); // Utilisation de require
+const OpenAI = require("openai");
 
+
+//const OpenAI = require("openai"); // Utilisation de require
+const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -16,11 +18,27 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+
+const multerCompany = require('multer');
+const storageCompany = multerCompany.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploadsimagescompany/') // Destination directory for uploaded company images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname) // File naming convention
+  }
+});
+
+const uploadCompany = multerCompany({ storage: storageCompany });
+
+
 //const openai = new OpenAI({apiKey});
 const { comparePassword, hashPassword } = require("../helpers/auth");
-
+const profileCompanyModel = require("../models/Profile_company");
 const User = require("../models/user");
 const profileJobSeekerModel = require("../models/Profile_jobseeker");
+const { acceptUserByEmail2, rejectUserByEmail2 } = require("../Controllers/UserController");
+
 const JobSeeker = require("../models/user-jobseeker");
 const crypto = require("crypto");
 const {
@@ -50,6 +68,7 @@ const {
   resetPassword,
   getUserById,
   getProfileJobSeekerById,
+  updateProfileCompany
 } = require("../Controllers/UserController");
 
 const {
@@ -120,6 +139,25 @@ router.put("/updateProfileJobSeekerById/:profileid", async (req, res) => {
   }
 });
 
+router.put("/updateProfileCompany/:profileid", async (req, res) => {
+  try {
+    const profileId = req.params.profileid;
+    const updates = req.body; // The updates to be applied
+
+    // Call the function to update the profile
+    const updatedProfile = await updateProfileCompany(profileId, updates);
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      profile: updatedProfile,
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
 router.get('/getAllJobSeekerProfiles',getAllJobSeekerProfiles);
 
 router.get("/getUserJobSeekers", getUserJobSeekers);
@@ -127,6 +165,7 @@ router.get("/getUser/:userId", getUserById);
 
 //
 //router.post('/registercompany',  createUserCompany)
+router.post('/createUser',authMiddleware, createUser);
 router.get("/", getUsers);
 router.get("/company", authMiddleware, getUserCompany);
 router.post("/registerCompany", registerUserCompany);
@@ -298,46 +337,6 @@ router.put('/profileJobSeeker_git/:profileId', async (req, res) => {
   }
 });
 
-
-// Configure multer for handling file uploads
-// Configure multer for handling file uploads
-/*
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "/kiki"); // Define where to store uploaded files
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname); // Define file name
-  },
-});
-
-const upload = multer({ storage: storage }); // Keep this declaration for handling file uploads
-
-// Handle image upload
-router.post("/upload", upload.single("image"), async (req, res) => {
-  const imageUrl = req.file.path; // Assuming the image is stored in a local directory
-  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
-
-  try {
-    // Find the user by ID and update the image attribute
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    user.image = imageUrl;
-    await user.save();
-
-    res.json({ imageUrl: imageUrl });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}); 
-//////////////////////  const userId = req.user.id; // Assuming you have authenticated the user and have their ID
-////////////////////// 
-//////////////////////
-router.post("/createUser",authMiddleware, upload.single("image"), createUser); */
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const userData = req.body; // Updated user data sent in the request body
@@ -473,6 +472,62 @@ router.get('/profileJS_image/:profileId', async (req, res) => {
   }
 });
 
+// POST route to upload image for profile company
+router.post('/profileCompany_image/:companyId', uploadCompany.single('image'), async (req, res) => {
+  try {
+    const companyId = req.params.companyId;
+
+    // Find the profile company by _id
+    let profileCompany = await profileCompanyModel.findById(companyId); 
+
+    if (!profileCompany) {
+      return res.status(404).json({ error: 'Profile company not found' });
+    }
+
+    // Check if an image file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file uploaded' });
+    }
+
+    // Update the image field with the path to the uploaded image file
+    profileCompany.image = req.file.path;
+
+    // Save the updated profile company
+    profileCompany = await profileCompany.save();
+
+    return res.status(200).json({ message: 'Image uploaded successfully', profileCompany });
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+// GET route to fetch profile company image
+router.get('/profileCompany_image/:companyId', async (req, res) => {
+  try {
+    const companyId = req.params.companyId;
+
+    // Find the profile company by _id
+    const profileCompany = await profileCompanyModel.findById(companyId);
+
+    if (!profileCompany) {
+      return res.status(404).json({ error: 'Profile company not found' });
+    }
+
+    // Resolve the absolute path to the image file
+    const imagePath = path.resolve(__dirname, '..', profileCompany.image);
+
+    // Send the image file as a response
+    return res.sendFile(imagePath);
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 // Route pour traiter les messages du chatbot
 router.post("/chatbot", (req, res) => {
   const { message } = req.body;
@@ -498,19 +553,58 @@ router.post("/chatbot", (req, res) => {
 }
 main();*/
 // Route pour approuver un utilisateur
-router.post('/approve', async (req, res) => {
-  const { userId } = req.body;
+
+/*app.put('/approve/:email', authMiddleware, (req, res) => {
+  const email = req.params.email;
+  const user = user.find(u => u.email === email);
+
+  if (user) {
+    user.isApproved = true;
+    res.status(200).send(`User ${email} has been approved.`);
+  } else {
+    res.status(404).send(`User ${email} not found.`);
+  }
+});*/
+// Route pour approuver un utilisateur
+router.put("/approve/:email",authMiddleware, acceptUserByEmail);
+
+// Route pour rejeter un utilisateur
+router.delete("/:email",authMiddleware, rejectUserByEmail);
+const openai = new OpenAI({
+  apiKey: "sk-proj-0OPaRvMhBzLwLcbohb24T3BlbkFJNvTVQWcRgKv3F39XUasw", // Use environment variable for API key
+});
+
+
+// Global variable to hold the conversation history
+let conversationHistory = [
+  { role: "system", content: "You are a helpful assistant." },
+];
+
+router.post("/ask", async (req, res) => {
+  const userMessage = req.body.message;
+
+  // Update conversation history with the user's message
+  conversationHistory.push({ role: "user", content: userMessage });
+
   try {
-    const user = await User.findById(userId);
-    if (user) {
-      user.isApproved = true;
-      await user.save();
-      res.status(200).json({ message: 'Utilisateur approuvé.' });
-    } else {
-      res.status(404).json({ message: 'Utilisateur introuvable.' });
-    }
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    // Request a completion from OpenAI based on the updated conversation history
+    const completion = await openai.chat.completions.create({
+      messages: conversationHistory,
+      model: "gpt-3.5-turbo",
+    });
+
+    // Extract the response
+    const botResponse = completion.choices[0].message.content;
+
+    // Update conversation history with the assistant's response
+    conversationHistory.push({ role: "assistant", content: botResponse });
+
+    // Send the assistant's response back to the client
+    res.json({ message: botResponse });
+  } catch (error) {
+    console.error("Error calling OpenAI: ", error);
+    res.status(500).send("Error generating response from OpenAI");
   }
 });
+
 module.exports = router;

@@ -11,8 +11,8 @@ const profileCompanySchema = new mongoose.Schema({
   name: String,
   email: {
     type: String,
-    unique: true,
-  },
+    //unique: true  
+  }, 
   password: String,
   matriculeFiscale: String,
   description: String,

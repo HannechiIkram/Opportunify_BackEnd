@@ -13,12 +13,24 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const JobOffer = require('../models/job_offer'); 
 
-
-
-
 const authMiddleware = require ('../midill/authMiddleware');
-////samar
 
+// saamrrr applications ljob offer mou3ayen
+router.get('/applicationperoffer/:offerId', authMiddleware,async (req, res) => {
+  const offerId = req.params.offerId;
+  try {
+      const applications = await Application.find({ job_offer: offerId }).populate('job_offer').exec();
+      if (!applications) {
+          return res.status(201).json({ message: 'Applications not found' });
+      }
+      res.send(applications);
+  } catch (error) {
+      console.error('Error fetching application:', error);
+      res.status(500).json({ message: 'An error occurred while fetching the application' });
+  }
+});
+
+////applications mtaa el user eli connecté
 router.get('/application/user', authMiddleware, async (req, res) => {
   try {
       const userId = req.user.id;
@@ -34,6 +46,7 @@ router.get('/application/user', authMiddleware, async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 // [READ] 
 router.get("/getall",authMiddleware, applicationController.getall);
@@ -263,8 +276,9 @@ const fs = require('fs');
 const app = express();
 
 // ... other routes
+/*
 
-app.get('/download-cv/:applicationId', async (req, res) => {
+router.get('/download-cv/:applicationId', async (req, res) => {
   try {
     const { applicationId } = req.params;
 
@@ -281,7 +295,7 @@ app.get('/download-cv/:applicationId', async (req, res) => {
     }
 
     res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
-    res.setHeader('Content-Disposition', `attachment; filename="${application.cv}"`); // Allow customization
+    res.setHeader('Content-Disposition', attachment; filename="${application.cv}"); // Allow customization
 
     const cvStream = fs.createReadStream(cvPath);
     cvStream.pipe(res);
@@ -308,15 +322,16 @@ app.get('/download-cover-letter/:applicationId', async (req, res) => {
     }
 
     res.setHeader('Content-Type', 'application/pdf'); // Adjust for relevant content type
-    res.setHeader('Content-Disposition', `attachment; filename="${application.coverLetter}"`); // Allow customization
+    res.setHeader('Content-Disposition', attachment; filename="${application.coverLetter}"); // Allow customization
 
     const coverLetterStream = fs.createReadStream(coverLetterPath);
     coverLetterStream.pipe(res);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error downloading cover letter:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+});*/
 
 router.get('/applications/search/joboffertitle',authMiddleware, async (req, res) => {
   try {
