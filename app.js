@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const mongoconnection = require("./database/mongodb.json");
 const cors = require('cors');
 const path = require('path');
+
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
@@ -16,7 +17,9 @@ const indexRouter = require('./routes/index');
 const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
 const jobOfferRouter = require("./routes/job_offer");
-
+const statusRoutes = require("./routes/statusRoutes");
+const searchRoutes = require("./routes/search");
+const profileRoute = require("./routes/profile");
 const app = express();
 
 // Connexion à MongoDB
@@ -51,7 +54,9 @@ app.use('/', indexRouter);
 app.use("/job_offer", jobOfferRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
-
+app.use('/status', statusRoutes);
+app.use('/search', searchRoutes);
+app.use('/consult',profileRoute);
 // Gestion des erreurs
 app.use(function(req, res, next) {
   next(createError(404));
