@@ -6,6 +6,8 @@ const job_offerModel = require("../models/job_offer");
 const accessControl = require('../midill/accescontrol');
 const User = require('../models/user');
 const nodemailer = require('nodemailer');
+const Application = require('../models/application'); // Assurez-vous de spécifier le bon chemin vers votre modèle Application
+
 
 const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
@@ -23,6 +25,17 @@ router.get('/company/joboffers', authMiddleware, async (req, res) => {
   } catch (error) {
       console.error('Error fetching job offers by user company ID:', error);
       res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+// Route pour obtenir le nombre d'applications pour une offre spécifique
+router.get('/applications/count/:jobOfferId', async (req, res) => {
+  try {
+    const jobOfferId = req.params.jobOfferId;
+    const applicationCount = await Application.countDocuments({ job_offer: jobOfferId });
+    res.json({ count: applicationCount });
+  } catch (error) {
+    console.error('Error counting applications:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
