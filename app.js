@@ -18,6 +18,7 @@ require('dotenv').config();
 const indexRouter = require('./routes/index');
 const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
+const jobsRouter = require("./routes/jobs");
 const jobOfferRouter = require("./routes/job_offer");
 const statusRoutes = require("./routes/statusRoutes");
 const searchRoutes = require("./routes/search");
@@ -54,6 +55,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Utilisation des routes
 app.use('/', indexRouter);
 app.use("/job_offer", jobOfferRouter);
+app.use("/jobs", jobsRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
 app.use('/evaluations', evaluationRouter)
