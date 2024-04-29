@@ -2,7 +2,6 @@ var express = require("express");
 var router = express.Router();
 const OpenAI = require("openai");
 
-
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -164,8 +163,10 @@ router.get("/getUserJobSeekers", getUserJobSeekers);
 router.get("/getUser/:userId", getUserById);
 
 //
+
 //router.post('/registercompany',  createUserCompany)
 router.post('/createUser',authMiddleware, createUser);
+//router.post('/registercompany',createUserCompany)
 router.get("/", getUsers);
 router.get("/company", authMiddleware, getUserCompany);
 router.post("/registerCompany", registerUserCompany);
@@ -336,6 +337,32 @@ router.put('/profileJobSeeker_git/:profileId', async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+router.put('/profileJobSeeker_technologies/:profileId', async (req, res) => {
+  try {
+    const profileId = req.params.profileId;
+    const { technologies } = req.body;
+
+    // Find the profile job seeker by _id
+    const profileJobSeeker = await profileJobSeekerModel.findById(profileId);
+
+    if (!profileJobSeeker) {
+      return res.status(404).json({ error: 'Profile job seeker not found' });
+    }
+
+    // Update the technologies field
+    profileJobSeeker.technologies = technologies;
+
+    // Save the updated profile job seeker
+    await profileJobSeeker.save();
+
+    return res.status(200).json({ message: 'Technologies updated successfully', profileJobSeeker });
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
