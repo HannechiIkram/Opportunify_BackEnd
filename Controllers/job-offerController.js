@@ -108,6 +108,37 @@ async function add(req, res) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    if (!deadline){
+      return res.status(400).json({ error: "deadline cannot be empty" });
+
+    }
+ // Validate title length
+ if (title.length < 5) {
+  return res.status(400).json({ error: "Title must be at least 5 characters long" });
+}
+// Validate title
+if (!/^[a-zA-Z]+$/.test(title)) {
+  return res.status(400).json({ error: "Title must contain only alphabetical characters" });
+}
+
+// Validate responsibilities
+if (!/^[a-zA-Z]+$/.test(responsibilities)) {
+  return res.status(400).json({ error: "responsibilities must contain only alphabetical characters" });
+}
+// Validate job location (lieu) length
+if (lieu.length < 5) {
+  return res.status(400).json({ error: "Job location must be at least 5 characters long" });
+}
+// Validate description length
+if (description.length < 10) {
+  return res.status(400).json({ error: "Description must be at least 10 characters long" });
+}
+// Validate salary informations
+const salaryRegex = /^\d{3,}\s*(\$|DT|€)$/; // Au moins 3 chiffres suivis d'un symbole ($, DT ou €)
+if (!salaryRegex.test(salary_informations)) {
+  return res.status(400).json({ error: "Salary information must contain at least 3 numbers followed by a currency symbol ($, DT or €)" });
+}
+
     const newJobOffer = new job_offer({
       title,
       description,

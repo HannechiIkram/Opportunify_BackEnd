@@ -15,7 +15,7 @@ const job_offer = new Schema({
  createdAt: { type: Date, default: Date.now } ,// Champ pour la date de création, avec la valeur par défaut de la date actuelle
  company: { type: Schema.Types.ObjectId, ref: 'Usercompany' },
  deadline:Date,
-
+status:String,
 
 
 
