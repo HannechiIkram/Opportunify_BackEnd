@@ -224,10 +224,7 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
   
-  
-
 // GET route to retrieve application details by ID
 router.get('/get/:id', authMiddleware,async (req, res) => {
   try {
@@ -352,6 +349,26 @@ router.get('/applications/search/joboffertitle',authMiddleware, async (req, res)
   } catch (error) {
     console.error('Error searching for applications by job offer title:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+router.get('/search/:status', async (req, res) => {
+  const { status } = req.params;
+  
+  try {
+    let applications;
+
+    if (status === 'accepted') {
+      applications = await Application.find({ accepted: true });
+    } else if (status === 'rejected') {
+      applications = await Application.find({  rejected: true });
+    } else {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    res.json(applications);
+  } catch (error) {
+    console.error('Error searching applications by status:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
