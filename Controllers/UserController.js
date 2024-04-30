@@ -16,6 +16,8 @@ const InstagramStrategy = require("passport-instagram").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
+const UserJobSeekerModel = require('../models/user-jobseeker'); 
+
 const registerUser = async (req, res) => {
   try {
     const { name,email, password,lastname, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
@@ -50,11 +52,34 @@ const registerUser = async (req, res) => {
       description
     });
 
+    const newCompanyUser = await UserCompanyModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'company'
+  
+    });
+    
+// Create the UserJobSeeker f table mtaa jobseeker
+const newUserJobSeeker = await UserJobSeekerModel.create({
+  name,
+  email,
+  password: hashedPassword,
+ 
+  role: 'job_seeker',
+ 
+
+});
+
+    return res.status(201).json({msg:"user added successfully",newUser,newUserJobSeeker,newUserJobSeeker });
+    
     // Return response
+
     return res.status(201).json({
       id: newUser._id,
       email: newUser.email,
       role: newUser.role,
+      newCompanyUser
     });
   } catch (error) {
     console.error('Error during user registration:', error);}
@@ -805,8 +830,6 @@ const updateProfileCompany = async (profileId, updates) => {
 
 
 
-
-
 const createUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -817,21 +840,22 @@ const createUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already taken" });
     }
 
-    // Check if the provided role is valid
-    if ( role !== "user" && role !== "company" && role !== "job_seeker") {
-      return res.status(400).json({ error: "Invalid role. Only 'admin' or 'user' roles are allowed" });
+    // Ensure valid role
+    const validRoles = ["user", "company", "job_seeker"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: `Invalid role. Allowed roles are: ${validRoles.join(', ')}` });
     }
 
     // Hash the password
     const hashedPassword = await hashPassword(password);
 
     // Create new user
-    const newUser = await User.create({
+    const newUser = await UserModel.create({
       name,
       email,
       password: hashedPassword,
@@ -844,9 +868,10 @@ const createUser = async (req, res) => {
       email: newUser.email,
       role: newUser.role,
     });
+
   } catch (error) {
-    console.error("Error during user creation:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error('Error during user creation:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
