@@ -248,7 +248,7 @@ const loginUser = async (req, res) => {
         birthdate: jobSeeker.birthdate,
         role_jobseeker: jobSeeker.role_jobseeker,
         image: jobSeeker.image,
-        // Add other fields as needed
+        technologies:jobSeeker.technologies,
       });
 
       // Save the profile to the database
@@ -738,6 +738,28 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     if (!profile) {
       throw new Error("Profile job seeker not found");
     }
+      // Validate updates
+      const errors = {};
+
+      // Validate name
+      if (updates.name && updates.name.trim() === "") {
+        errors.name = "Name cannot be empty";
+      }
+     // Validate lastname
+     if (updates.address && updates.address.trim() === "") {
+      errors.address = "address cannot be empty";
+    }
+
+      // Validate lastname
+      if (updates.lastname && updates.lastname.trim() === "") {
+        errors.lastname = "Lastname cannot be empty";
+      }
+          
+        // Check if there are validation errors
+    if (Object.keys(errors).length > 0) {
+      throw new Error(JSON.stringify(errors));
+    }
+
     const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(
       profileId,
       { $set: updates },
@@ -782,10 +804,55 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     throw error;
   }
 };
-
-
 const updateProfileCompany = async (profileId, updates) => {
   try {
+    // Validation
+    const errors = {};
+
+    // Validate name
+    if ('name' in updates && !updates.name.trim()) {
+      errors.name = 'Name cannot be empty';
+    }
+
+    // Validate address
+    if ('address' in updates && !updates.address.trim()) {
+      errors.address = 'Address cannot be empty';
+    }
+
+    // Validate phoneNumber
+    if ('phoneNumber' in updates) {
+      if (!updates.phoneNumber.trim()) {
+        errors.phoneNumber = 'Phone number cannot be empty';
+      } else if (!/^\d+$/.test(updates.phoneNumber.trim())) {
+        errors.phoneNumber = 'Phone number must contain only digits';
+      } else if (updates.phoneNumber.trim().length > 11) {
+        errors.phoneNumber = 'Phone number cannot exceed 11 digits';
+      }
+    }
+
+    // Validate domainOfActivity
+    if ('domainOfActivity' in updates && !updates.domainOfActivity.trim()) {
+      errors.domainOfActivity = 'Domain of activity cannot be empty';
+    }
+
+    // Validate matriculeFiscale
+    if ('matriculeFiscale' in updates && !updates.matriculeFiscale.trim()) {
+      errors.matriculeFiscale = 'Matricule fiscale cannot be empty';
+    }
+
+    // Validate description
+    if ('description' in updates && !updates.description.trim()) {
+      errors.description = 'Description cannot be empty';
+    }
+
+    // Validate facebook
+    // Add validation for other social media fields if needed
+
+    // If there are validation errors, throw an error
+    if (Object.keys(errors).length > 0) {
+      throw errors;
+    }
+
     // Update the profile of the company
     const updatedProfileCompany = await ProfileCompany.findByIdAndUpdate(
       profileId,
