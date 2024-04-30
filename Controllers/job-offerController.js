@@ -154,7 +154,23 @@ if (!salaryRegex.test(salary_informations)) {
     });
 
     await newJobOffer.save();
-    res.status(201).json(newJobOffer);
+    const message = `Opportunify: Nouvelle offre d'emploi créée. Titre: ${title}. Consultez la plateforme pour plus de détails.`;
+    const to = '+21620037070'; // Numéro de téléphone du destinataire
+     // Assurez-vous que le numéro suit le format E.164
+     if (!/^\+\d{1,15}$/.test(to)) {
+      return res.status(400).json({ error: 'Invalid phone number format.' });
+    }
+    const accountSid = 'AC9775026b390d558d55b42e4bb03e28e7';
+    const authToken = '2fe4699e0dbd4c4c2608c46691d4c5ab';
+    const client = require('twilio')(accountSid, authToken);
+    // Envoi du SMS
+    await client.messages.create({
+      body: message,
+      from: '+12156218082', // Votre numéro Twilio
+      to,
+    });
+
+    res.status(201).json({ success: true, newJobOffer, smsSent: true });
   } catch (error) {
     res.status(400).json({ error: error.toString() });
   }

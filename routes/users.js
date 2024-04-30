@@ -1,6 +1,10 @@
 var express = require("express");
 var router = express.Router();
 const OpenAI = require("openai");
+require('dotenv').config();
+
+const twilio = require('twilio');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
@@ -598,7 +602,7 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
 const openai = new OpenAI({
-  apiKey: "sk-proj-08Ro55QchkCW7FSQ8fdWT3BlbkFJEiDmqKgojO5NW3HWTH7F", // Use environment variable for API key
+  apiKey: "sk-proj-P5IOAopcf0Pmoo7bvqV5T3BlbkFJqIQtewhDZuLpiFjryHMM", // Use environment variable for API key
 });
 
 
@@ -632,6 +636,42 @@ router.post("/ask", async (req, res) => {
     console.error("Error calling OpenAI: ", error);
     res.status(500).send("Error generating response from OpenAI");
   }
+});
+function isValidPhoneNumber(phone) {
+  // Assurez-vous que le numéro commence par + suivi de 1 à 15 chiffres
+  const regex = /^\+\d{1,15}$/;
+  return regex.test(phone);
+}
+router.post('/send-sms', (req, res) => {
+  const { to, message } = req.body;
+
+  // Validation du format du numéro
+  if (!isValidPhoneNumber(to)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid phone number format. Ensure it is in E.164 format.',
+    });
+  }
+  const accountSid = 'AC9775026b390d558d55b42e4bb03e28e7';
+  const authToken = '2fe4699e0dbd4c4c2608c46691d4c5ab';
+  const client = require('twilio')(accountSid, authToken);
+  client.messages
+  .create({
+    body: message,
+
+    from: '+12156218082',
+to: '+21699333589'
+})
+    .then((msg) => {
+      res.status(200).json({ success: true, sid: msg.sid });
+    })
+    .catch((error) => {
+      console.error('Twilio Error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    });
 });
 
 module.exports = router;
