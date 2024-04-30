@@ -216,6 +216,13 @@ const loginUser = async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
+ // Vérifier si l'utilisateur est accepté
+ if (!user.accepted) {
+  return res.status(403).json({ error: "User is rejected and cannot log in" });
+}
+if (    user.isBlocked ){return res.status(404).json({error:"User is blocked"})}
+
+// Vérifier le mot de passe (en supposant que vous avez un système de mots de passe hachés)
 
     // Initialize jobSeekerId and profileId
     let jobSeekerId = null;
@@ -1039,45 +1046,8 @@ const rejectUserByEmail = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-const acceptUserByEmail2 = async (req, res) => {
-  try {
-    const { email } = req.params;
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
-    }
-
-    user.isApproved = true;
-    await user.save();
-
-    res.status(200).json({ message: "Utilisateur approuvé avec succès." });
-  } catch (error) {
-    console.error("Erreur lors de l'approbation de l'utilisateur :", error);
-    res.status(500).json({ message: "Erreur interne du serveur." });
-  }
-};
-
-const rejectUserByEmail2 = async (req, res) => {
-  try {
-    const { email } = req.params;
-
-    const user = await User.findOneAndDelete({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
-    }
-
-    res.status(200).json({ message: "Utilisateur rejeté avec succès." });
-  } catch (error) {
-    console.error("Erreur lors du rejet de l'utilisateur :", error);
-    res.status(500).json({ message: "Erreur interne du serveur." });
-  }
-};
 module.exports = {
-  acceptUserByEmail2,
-  rejectUserByEmail2,
+ 
 
   rejectUserByEmail,
   acceptUserByEmail,
