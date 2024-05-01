@@ -5,6 +5,43 @@ const router = express.Router();
 
 const upload = multer({ dest: 'uploads/' });
 
+/*
+/// hedhi b easyOCr python
+const { exec } = require('child_process');
+const ocrScriptPath = 'C:/Users/rebhi/OneDrive/Bureau/Opportunify/Opportunify_BackEnd/OCR/ocr.py';
+
+
+router.post('/upload', upload.single('image'), async (req, res) => {
+    try {
+        const imagePath = req.file.path;
+        async function performOCR(imagePath) {
+          return new Promise((resolve, reject) => {
+              const command = `python ${ocrScriptPath} ${imagePath}`;
+                            exec(command, (error, stdout, stderr) => {
+                  if (error) {
+                      console.error("Error running Python script:", stderr);
+                      reject(error);
+                  } else {
+                      resolve(stdout);
+                  }
+              });
+          });
+      }
+        const extractedText = await performOCR(imagePath);
+
+        if (extractedText) {
+            res.json({ success: true, extractedText: extractedText });
+        } else {
+            res.json({ success: false, error: 'No text was extracted from the image.' });
+        }
+    } catch (error) {
+        console.error('Error during OCR:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+*/
+
+////hedhi b tesseract
 
 router.post('/upload', upload.single('image'), async (req, res) => {
   try {
