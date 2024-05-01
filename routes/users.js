@@ -5,6 +5,8 @@ require('dotenv').config();
 
 const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+/*const twilio = require('twilio');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);*/
 
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
@@ -602,7 +604,6 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
 const openai = new OpenAI({
-
   apiKey: "sk-proj-P5IOAopcf0Pmoo7bvqV5T3BlbkFJqIQtewhDZuLpiFjryHMM", // Use environment variable for API key
 });
 
