@@ -3,8 +3,8 @@ var router = express.Router();
 const OpenAI = require("openai");
 require('dotenv').config();
 
-const twilio = require('twilio');
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+/*const twilio = require('twilio');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);*/
 
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');

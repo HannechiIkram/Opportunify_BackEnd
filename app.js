@@ -18,6 +18,7 @@ const indexRouter = require('./routes/index');
 const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
 const jobOfferRouter = require("./routes/job_offer");
+const OCRrouter = require("./routes/OCR-upload-image");
 
 const app = express();
 
@@ -53,8 +54,9 @@ app.use('/', indexRouter);
 app.use("/job_offer", jobOfferRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
-app.use('/evaluations', evaluationRouter)
+app.use('/evaluations', evaluationRouter);
 
+app.use('/OCR',OCRrouter);
 
 // Gestion des erreurs
 app.use(function(req, res, next) {

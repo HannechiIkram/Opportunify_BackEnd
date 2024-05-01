@@ -57,6 +57,7 @@
     "react-phone-number-input": "^3.3.9",
     "react-toastify": "^10.0.5",
     "socket.io": "^4.7.5",
+    "tesseract.js": "^5.0.5",
     "twilio": "^5.0.4",
     "yup": "^1.4.0"
   },
