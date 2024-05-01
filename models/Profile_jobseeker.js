@@ -22,6 +22,7 @@ const profileJobSeekerSchema = new Schema({
    instagram_url:String,
    git_url:String,
   description:String,
+  technologies: [{ type: String }], // Add a new field for technologies
   image: String 
 
 });

@@ -108,6 +108,37 @@ async function add(req, res) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    if (!deadline){
+      return res.status(400).json({ error: "deadline cannot be empty" });
+
+    }
+ // Validate title length
+ if (title.length < 5) {
+  return res.status(400).json({ error: "Title must be at least 5 characters long" });
+}
+// Validate title
+if (!/^[a-zA-Z]+$/.test(title)) {
+  return res.status(400).json({ error: "Title must contain only alphabetical characters" });
+}
+
+// Validate responsibilities
+if (!/^[a-zA-Z]+$/.test(responsibilities)) {
+  return res.status(400).json({ error: "responsibilities must contain only alphabetical characters" });
+}
+// Validate job location (lieu) length
+if (lieu.length < 5) {
+  return res.status(400).json({ error: "Job location must be at least 5 characters long" });
+}
+// Validate description length
+if (description.length < 10) {
+  return res.status(400).json({ error: "Description must be at least 10 characters long" });
+}
+// Validate salary informations
+const salaryRegex = /^\d{3,}\s*(\$|DT|€)$/; // Au moins 3 chiffres suivis d'un symbole ($, DT ou €)
+if (!salaryRegex.test(salary_informations)) {
+  return res.status(400).json({ error: "Salary information must contain at least 3 numbers followed by a currency symbol ($, DT or €)" });
+}
+
     const newJobOffer = new job_offer({
       title,
       description,
@@ -123,7 +154,23 @@ async function add(req, res) {
     });
 
     await newJobOffer.save();
-    res.status(201).json(newJobOffer);
+    const message = `Opportunify: Nouvelle offre d'emploi créée. Titre: ${title}. Consultez la plateforme pour plus de détails.`;
+    const to = '+21620037070'; // Numéro de téléphone du destinataire
+     // Assurez-vous que le numéro suit le format E.164
+     if (!/^\+\d{1,15}$/.test(to)) {
+      return res.status(400).json({ error: 'Invalid phone number format.' });
+    }
+    const accountSid = 'AC9775026b390d558d55b42e4bb03e28e7';
+    const authToken = '2fe4699e0dbd4c4c2608c46691d4c5ab';
+    const client = require('twilio')(accountSid, authToken);
+    // Envoi du SMS
+    await client.messages.create({
+      body: message,
+      from: '+12156218082', // Votre numéro Twilio
+      to,
+    });
+
+    res.status(201).json({ success: true, newJobOffer, smsSent: true });
   } catch (error) {
     res.status(400).json({ error: error.toString() });
   }
