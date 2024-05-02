@@ -1004,7 +1004,7 @@ const gettttet = async (req, res) => {
     const userId = req.params.id; // Access the user ID from req.params.id
 
     const user = await User.findById(userId).select(
-      "name  email password role description  domainOfActivity phoneNumber phone socialMedia address"
+      "name  email password role description  domainOfActivity socialMedia address"
     );
     if (!user) {
       return res.status(404).json({ error: "User not found" });

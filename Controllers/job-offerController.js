@@ -176,29 +176,37 @@ if (!salaryRegex.test(salary_informations)) {
     res.status(400).json({ error: error.toString() });
   }
 }
-
-async function createNotification(req, res) {
+const createNotification = async (req, res) => {
   try {
+    // Extract userId and message from the request body
+    const { userId, message } = req.body;
 
-    const { userId, message } = req.body; // Vérifiez que userId et message existent
-    
+    // Ensure both userId and message are provided
     if (!userId) {
-      return res.status(400).json({ error: "userId est requis." });
-    }
-    
-    if (!message) {
-      return res.status(400).json({ error: "message est requis." });
+      return res.status(400).json({ error: 'userId is required.' });
     }
 
+    if (!message) {
+      return res.status(400).json({ error: 'message is required.' });
+    }
+
+    // Create a new Notification instance
     const notification = new Notification({ userId, message });
 
+    // Save the notification to the database
     await notification.save();
+
+    // If successful, respond with a success message and the created notification
     res.status(201).json({ success: true, notification });
   } catch (error) {
-    console.error("Erreur lors de la création de la notification:", error);
-    res.status(500).json({ error: "Erreur interne du serveur." });
+    // Log the error for debugging purposes
+    console.error('Error creating notification:', error);
+
+    // Respond with an internal server error status
+    res.status(500).json({ error: 'Internal Server Error. Please try again later.' });
   }
-}
+};
+
 
 
 module.exports = { getall,createNotification, getbyid , add ,getoffershomepage};
