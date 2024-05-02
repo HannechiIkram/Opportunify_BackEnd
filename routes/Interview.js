@@ -1,10 +1,13 @@
 // Express.js routes for managing interview events
-
 const express = require('express');
 const router = express.Router();
+const moment = require('moment');
 const InterviewEvent = require('../models/InterviewEvent');
 const ProfileJobSeeker = require("../models/Profile_jobseeker");
 const Application = require("../models/application"); 
+const NotificationEvent =require("../models/NotificationEvent");
+const nodemailer = require('nodemailer');
+
 // Route to create a new interview event
 router.post('/interview-event', async (req, res) => {
     try {
@@ -130,7 +133,20 @@ router.post('/interview-event/:applicationId/:pid', async (req, res) => {
         // Create the interview event with the updated request body
         const interviewEvent = new InterviewEvent(req.body);
         await interviewEvent.save();
-        
+    
+        // Send the created interview event as the response
+// Calculate the number of days remaining until the interview event
+const eventDate = moment(interviewEvent.date); // Assuming date is in ISO format
+const daysRemaining = eventDate.diff(moment(), 'days');
+
+// Generate the notification message with the remaining days
+const notificationMessage = `You have an upcoming interview event in ${daysRemaining} days.`;
+        const notificationEvent = new NotificationEvent({
+            recipient: profileJobSeekerId,
+            message: notificationMessage
+        });
+        await notificationEvent.save();
+
         // Send the created interview event as the response
         res.status(201).send(interviewEvent);
     } catch (error) {
@@ -187,6 +203,21 @@ router.delete('/interview-event/:interviewEventId', async (req, res) => {
     }
 });
 
+// Define a route to get notifications by recipient
+router.get('/notifications/:recipientId', async (req, res) => {
+    try {
+        const { recipientId } = req.params;
+
+        // Find notifications by recipient ID
+        const notifications = await NotificationEvent.find({ recipient: recipientId });
+
+        // Send the notifications as the response
+        res.json(notifications);
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+        res.status(500).send('Failed to fetch notifications');
+    }
+});
 
 // Other CRUD routes for updating and deleting interview events
 
