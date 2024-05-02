@@ -85,6 +85,17 @@ const userSchema = new mongoose.Schema({
       trim: true,
     },
   },
+
+  phoneNumber: String,
+  isBlocked: { type: Boolean, default: false },
+  resetToken: String,
+  resetTokenExpires: Date,
+  //////
+  mfaCode: {
+    type: Number,
+    default: null // Set the default value to null
+}
+
 });
 
 // Ajouter des permissions basées sur le rôle de l'utilisateur
