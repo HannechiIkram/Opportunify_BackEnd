@@ -1,14 +1,25 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose');
 
-const notificationSchema = new mongoose.Schema({
-  job_seeker: { type: Schema.Types.ObjectId, ref: "UserJobSeeker" },
-  type: String,
-  application: { type: mongoose.Schema.Types.ObjectId, ref: 'Application' },
-  createdAt: { type: Date, default: Date.now },
-  isRead: { type: Boolean, default: false },
-  job_offer: { type: Schema.Types.ObjectId, ref: 'JobOffer' },
+const NotificationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Référence au modèle User
+    required: true,
+  },
+  message: {
+    type: String, // Doit être une chaîne de caractères
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now, // Assure une valeur par défaut
+  },
+  isRead: {
+    type: Boolean,
+    default: false, // Valeur par défaut
+  },
 });
 
+const Notification = mongoose.model('Notification', NotificationSchema);
 
-module.exports = mongoose.model("Notification", notificationSchema);
+module.exports = Notification;
