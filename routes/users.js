@@ -6,7 +6,7 @@ const UserModel = require('../models/user');
 const mongoose = require('mongoose');
 const { createNotification } = require('../Controllers/job-offerController'); // Fonction de création de notifications
 const { getNotifications } = require('../Controllers/UserController');
-const  Notification = require('../models/Notification');
+
 const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const { gettttet } = require('../Controllers/UserController')
@@ -620,7 +620,10 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
 const openai = new OpenAI({
+
   apiKey: "sk-proj-qR0BKy1yRW4QMUASZrkCT3BlbkFJ6tNptOYDNcXfK7LWQxNo", // Use environment variable for API key
+  apiKey: "sk-proj-OU9ehNZwSf8idYCn7L6wT3BlbkFJVtNJMRer7O5qm6RdWN6M", // Use environment variable for API key
+
 });
 
 
@@ -773,5 +776,7 @@ router.get('/job_offer/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
 
 module.exports = router;

@@ -1,7 +1,6 @@
 const express = require("express");
 const job_offer = require("../models/job_offer")
 
-const Notification = require('../models/Notification');
 const User = require ('../models/user')
 const UserCompanyModel = require('../models/user-company');
 

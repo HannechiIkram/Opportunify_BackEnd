@@ -5,7 +5,7 @@ const multer = require('multer');
 //const upload = multer({ dest: 'uploadp/' });
 // Sign up endpoint (register du job seeker)
 const { createNotification } = require('./job-offerController'); // Fonction de création de notifications
-const Notification = require("../models/Notification");
+
 //
 const  ProfileJobSeekerModel=require('../models/Profile_jobseeker');
 
