@@ -92,8 +92,8 @@ const userSchema = new mongoose.Schema({
   resetTokenExpires: Date,
   //////
   mfaCode: {
-    type: Number,
-    default: null // Set the default value to null
+    type: String,
+    
 }
 
 });
