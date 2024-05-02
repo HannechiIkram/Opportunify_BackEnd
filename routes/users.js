@@ -6,7 +6,7 @@ const UserModel = require('../models/user');
 const mongoose = require('mongoose');
 const { createNotification } = require('../Controllers/job-offerController'); // Fonction de création de notifications
 const { getNotifications } = require('../Controllers/UserController');
-const  Notification = require('../models/Notification');
+
 const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const { gettttet } = require('../Controllers/UserController')
