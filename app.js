@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const mongoconnection = require("./database/mongodb.json");
 const cors = require('cors');
 const evaluationRouter = require('./routes/evaluations');
+const notificationRouter=require('./routes/notification')
 
 const path = require('path');
 
@@ -62,6 +63,8 @@ app.use("/job_offer", jobOfferRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
 app.use('/evaluations', evaluationRouter);
+
+app.use('/notifications', notificationRouter)
 
 ///samar
 app.use('/OCR',OCRrouter);
