@@ -13,9 +13,7 @@ const mongoose = require('mongoose');
 const JobOffer = require('../models/job_offer'); 
 const Notifications = require ('../models/Notifications');
 
-const Notification = require ('../models/Notifications');
 
-const Notifications = require ('../models/Notifications');
 
 
 const authMiddleware = require ('../midill/authMiddleware');
