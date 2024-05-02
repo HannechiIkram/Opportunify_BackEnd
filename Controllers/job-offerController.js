@@ -36,19 +36,6 @@ async function getoffershomepage(req, res) {
   }
 }
 
-//la recherche par id
-
-async function getbyid(req, res) {
-  try {
-
-    const data = await job_offer.findById(req.params.id);
-    res.send(data);
-  } catch (err) {
-    res.send(err);
-  }
-}  
-
-
 
 
 // l'ajout d'un utilisateur
@@ -182,6 +169,27 @@ if (!salaryRegex.test(salary_informations)) {
     res.status(400).json({ error: error.toString() });
   }
 }
+
+//la recherche par id
+async function getbyid(req, res) {
+  try {
+    const jobOffer = await job_offer.findById(req.params.id).populate('company', 'name');
+
+    if (!jobOffer) {
+      return res.status(404).json({ error: "Job offer not found" });
+    }
+
+    const response = {
+      ...jobOffer.toObject(),
+      companyName: jobOffer.company?.name || 'Unknown',
+    };
+
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(500).json({ error: err.toString() });
+  }
+}
+
 const createNotification = async (req, res) => {
   try {
     // Extract userId and message from the request body

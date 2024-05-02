@@ -13,10 +13,10 @@ const job_offer = new Schema({
   salary_informations:String,
  image :String,
  createdAt: { type: Date, default: Date.now } ,// Champ pour la date de création, avec la valeur par défaut de la date actuelle
- company: { type: Schema.Types.ObjectId, ref: 'Usercompany' },
+ company: { type: Schema.Types.ObjectId, ref: 'User' }, // Référence au modèle 'User'
+ companyName: String, // Champ pour stocker le nom de l'entreprise
  deadline:Date,
 status:String,
-companyName: String, // Champ pour le nom de l'entreprise
 
 
 
