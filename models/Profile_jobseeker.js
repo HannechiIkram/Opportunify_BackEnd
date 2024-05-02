@@ -18,12 +18,13 @@ const profileJobSeekerSchema = new Schema({
     enum: ["student", "alumni", "staff"],
   },
   password: { type: String, required: true },
-  facebook_url: String,
-  instagram_url: String,
-  git_url: String,
-  description: String,
-  image: String,
-  
+  facebook_url:String,
+   instagram_url:String,
+   git_url:String,
+  description:String,
+  technologies: [{ type: String }], // Add a new field for technologies
+  image: String 
+
 });
 
 module.exports = mongoose.model('ProfileJobSeeker', profileJobSeekerSchema);

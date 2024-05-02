@@ -11,11 +11,15 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
 const slowDown = require("express-slow-down");
+const { createNotification } = require('./job-offerController'); // Fonction de création de notifications
+const Notification = require("../models/Notification");
 const passport = require("passport");
 const InstagramStrategy = require("passport-instagram").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
+const UserJobSeekerModel = require('../models/user-jobseeker'); 
+// Modifier la fonction registerUser pour générer la notification
 const registerUser = async (req, res) => {
   try {
     const { name,email, password,lastname, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
@@ -50,11 +54,34 @@ const registerUser = async (req, res) => {
       description
     });
 
+    const newCompanyUser = await UserCompanyModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'company'
+  
+    });
+    
+// Create the UserJobSeeker f table mtaa jobseeker
+const newUserJobSeeker = await UserJobSeekerModel.create({
+  name,
+  email,
+  password: hashedPassword,
+ 
+  role: 'job_seeker',
+ 
+
+});
+
+    return res.status(201).json({msg:"user added successfully",newUser,newUserJobSeeker,newUserJobSeeker });
+    
     // Return response
+
     return res.status(201).json({
       id: newUser._id,
       email: newUser.email,
       role: newUser.role,
+      newCompanyUser
     });
   } catch (error) {
     console.error('Error during user registration:', error);}
@@ -62,94 +89,117 @@ const registerUser = async (req, res) => {
 
 
 
+
 // Import the transporter configuration (make sure the path is correct)
 const transporter = require('../nodemailer-config');
-;const registerUserCompany = async (req, res) => {
+const registerUserCompany = async (req, res) => {
   try {
-    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity, image } = req.body;
+    const {
+      name,
+      email,
+      password,
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image
+    } = req.body;
 
-    // Vérification de la présence des champs obligatoires
+    // Valider les entrées
     if (!name || !email || !password || !phoneNumber) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
+      res.status(400).json({ error: 'Name, email, password, and phone number are required' });
+      return; // S'assurer d'arrêter l'exécution
     }
 
-    // Validation de la longueur du mot de passe
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      return;
     }
 
-    // Vérification si l'email est déjà pris
     const exist = await UserCompanyModel.findOne({ email });
     if (exist) {
-      return res.status(400).json({ error: 'Email is already taken' });
+      res.status(400).json({ error: 'Email is already taken' });
+      return;
     }
 
-    // Validation du numéro de téléphone
     if (!/^\d{1,12}$/.test(phoneNumber)) {
-      return res.status(400).json({ error: 'Phone number should contain only digits and not exceed 12 characters' });
+      res.status(400).json({ error: 'Phone number should contain only digits and not exceed 12 characters' });
+      return;
     }
 
-    // Validation du domaine d'activité
     if (!/^[a-zA-Z]+$/.test(domainOfActivity)) {
-      return res.status(400).json({ error: 'Domain of activity should contain only letters' });
+      res.status(400).json({ error: 'Domain of activity should contain only letters' });
+      return;
     }
 
-    // Validation des liens des réseaux sociaux
+    if (!/^[a-zA-Z\s\n]+$/.test(description)) {
+      res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
+      return;
+    }
+
+    // Valider les liens de médias sociaux
     const socialMediaValidation = validateSocialMediaLinks(socialMedia);
     if (socialMediaValidation.error) {
-      return res.status(400).json({ error: socialMediaValidation.error });
+      res.status(400).json({ error: socialMediaValidation.error });
+      return; // Arrêtez l'exécution si une erreur survient
     }
 
-   // Validation de la description
-if (!/^[a-zA-Z\s\n]+$/.test(description)) {
-  return res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
-}
-// Check if user already existstry {
-  const existingUser = await UserModel.findOne({ email });
-  if (existingUser) {
-    return res.status(400).json({ error: 'Email is already taken' });
+    // Créer le nouvel utilisateur
+    const hashedPassword = await hashPassword(password);
+    const newCompanyUser = await UserCompanyModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image: req.file ? req.file.path : '',
+    });
+
+    const newUser = await UserModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'company',
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image: req.file ? req.file.path : '',
+    });
+
+    // Créer une notification
+    const adminUser = await UserModel.findOne({ role: 'admin' });
+    if (adminUser) {
+      const message = `A new user has registered: ${newUser.name}`;
+      try {
+        await createNotification({ body: { userId: adminUser._id, message } }, res); // Attention aux erreurs potentielles
+      } catch (error) {
+        console.error('Error in createNotification:', error);
+        // Pas de nouvelle réponse ici, car la réponse finale viendra après cette section
+      }
+    }
+
+    // Réponse de succès finale
+    res.status(201).json({ msg: 'User added successfully', newUser, newCompanyUser });
+    return; // Assurez-vous d'arrêter l'exécution après l'envoi de la réponse
+
+  } catch (error) {
+    console.error('Error in registerUserCompany:', error);
+    if (!res.headersSent) { // Empêcher un double envoi de réponse
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+    return; // Toujours arrêter après une réponse
   }
-  
-  const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
+};
 
-  const hashedPassword = await hashPassword(password);
-
-  const newCompanyUser = await UserCompanyModel.create({
-    name,
-    email,
-    password: hashedPassword,
-    matriculeFiscale,
-    description,
-    socialMedia,
-    address,
-    phoneNumber,
-    domainOfActivity,
-    image: imageUrl // Add image URL to user data
-
-  });
-
-  const newUser = await UserModel.create({
-    name,
-    email,
-    password: hashedPassword,
-    role: 'company',
-    matriculeFiscale,
-    description,
-    socialMedia,
-    address,
-    phoneNumber,
-    domainOfActivity,
-    image: imageUrl // Add image URL to user data
-
-  });
-
-  return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });
-} catch (error) {
-  console.error(error);
-  return res.status(500).json({ error: 'Internal Server Error' });
-}
-}
-// Function to validate social media links
 const validateSocialMediaLinks = (socialMedia) => {
   for (const key in socialMedia) {
     const link = socialMedia[key];
@@ -158,9 +208,7 @@ const validateSocialMediaLinks = (socialMedia) => {
     if (!urlRegex.test(link)) {
       return { error: `${key} should be a valid URL` };
     }
-  }
-///
-  return { valid: true };
+  }  return { valid: true };
 };
 
 ///
@@ -178,7 +226,6 @@ const speedLimiter = slowDown({
   delayMs: () => 180000, // Delay subsequent requests by 3 minutes
 });
 
-
 ///// login with Protection Against Brute Force Attacks
 
 const loginUser = async (req, res) => {
@@ -191,6 +238,13 @@ const loginUser = async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
+ // Vérifier si l'utilisateur est accepté
+ if (!user.accepted) {
+  return res.status(403).json({ error: "User is rejected and cannot log in" });
+}
+if (    user.isBlocked ){return res.status(404).json({error:"User is blocked"})}
+
+// Vérifier le mot de passe (en supposant que vous avez un système de mots de passe hachés)
 
     // Initialize jobSeekerId and profileId
     let jobSeekerId = null;
@@ -223,7 +277,7 @@ const loginUser = async (req, res) => {
         birthdate: jobSeeker.birthdate,
         role_jobseeker: jobSeeker.role_jobseeker,
         image: jobSeeker.image,
-        // Add other fields as needed
+        technologies:jobSeeker.technologies,
       });
 
       // Save the profile to the database
@@ -315,8 +369,6 @@ const loginUser = async (req, res) => {
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    // Return the access token, user data, jobSeekerId, and profileId in the response
     res
       .status(200)
       .send({ accessToken, user, jobSeekerId, profileId, company_profileId });
@@ -325,7 +377,6 @@ const loginUser = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }; 
-
 
 /*
 const getAllProfileCompanies = async (req, res) => {
@@ -599,8 +650,8 @@ const getUserCompanyProfile = async (req, res) => {
 };
 
 //
-
-const getUserByIdd = async (req, res) => {
+/*
+const getUserById= async (req, res) => {
   try {
     const userId = req.params.userId; // Assuming you pass the user ID as a URL parameter
 
@@ -617,7 +668,7 @@ const getUserByIdd = async (req, res) => {
     console.error("Error fetching user by ID:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
-};
+};*/
 
 const getAllJobSeekerProfiles = async (req, res) => {
   try {
@@ -713,6 +764,28 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     if (!profile) {
       throw new Error("Profile job seeker not found");
     }
+      // Validate updates
+      const errors = {};
+
+      // Validate name
+      if (updates.name && updates.name.trim() === "") {
+        errors.name = "Name cannot be empty";
+      }
+     // Validate lastname
+     if (updates.address && updates.address.trim() === "") {
+      errors.address = "address cannot be empty";
+    }
+
+      // Validate lastname
+      if (updates.lastname && updates.lastname.trim() === "") {
+        errors.lastname = "Lastname cannot be empty";
+      }
+          
+        // Check if there are validation errors
+    if (Object.keys(errors).length > 0) {
+      throw new Error(JSON.stringify(errors));
+    }
+
     const updatedProfileJobSeeker = await ProfileJobSeeker.findByIdAndUpdate(
       profileId,
       { $set: updates },
@@ -757,10 +830,55 @@ const updateProfileJobSeekerById = async (profileId, updates) => {
     throw error;
   }
 };
-
-
 const updateProfileCompany = async (profileId, updates) => {
   try {
+    // Validation
+    const errors = {};
+
+    // Validate name
+    if ('name' in updates && !updates.name.trim()) {
+      errors.name = 'Name cannot be empty';
+    }
+
+    // Validate address
+    if ('address' in updates && !updates.address.trim()) {
+      errors.address = 'Address cannot be empty';
+    }
+
+    // Validate phoneNumber
+    if ('phoneNumber' in updates) {
+      if (!updates.phoneNumber.trim()) {
+        errors.phoneNumber = 'Phone number cannot be empty';
+      } else if (!/^\d+$/.test(updates.phoneNumber.trim())) {
+        errors.phoneNumber = 'Phone number must contain only digits';
+      } else if (updates.phoneNumber.trim().length > 11) {
+        errors.phoneNumber = 'Phone number cannot exceed 11 digits';
+      }
+    }
+
+    // Validate domainOfActivity
+    if ('domainOfActivity' in updates && !updates.domainOfActivity.trim()) {
+      errors.domainOfActivity = 'Domain of activity cannot be empty';
+    }
+
+    // Validate matriculeFiscale
+    if ('matriculeFiscale' in updates && !updates.matriculeFiscale.trim()) {
+      errors.matriculeFiscale = 'Matricule fiscale cannot be empty';
+    }
+
+    // Validate description
+    if ('description' in updates && !updates.description.trim()) {
+      errors.description = 'Description cannot be empty';
+    }
+
+    // Validate facebook
+    // Add validation for other social media fields if needed
+
+    // If there are validation errors, throw an error
+    if (Object.keys(errors).length > 0) {
+      throw errors;
+    }
+
     // Update the profile of the company
     const updatedProfileCompany = await ProfileCompany.findByIdAndUpdate(
       profileId,
@@ -805,8 +923,6 @@ const updateProfileCompany = async (profileId, updates) => {
 
 
 
-
-
 const createUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -817,21 +933,22 @@ const createUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already taken" });
     }
 
-    // Check if the provided role is valid
-    if ( role !== "user" && role !== "company" && role !== "job_seeker") {
-      return res.status(400).json({ error: "Invalid role. Only 'admin' or 'user' roles are allowed" });
+    // Ensure valid role
+    const validRoles = ["user", "company", "job_seeker"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: `Invalid role. Allowed roles are: ${validRoles.join(', ')}` });
     }
 
     // Hash the password
     const hashedPassword = await hashPassword(password);
 
     // Create new user
-    const newUser = await User.create({
+    const newUser = await UserModel.create({
       name,
       email,
       password: hashedPassword,
@@ -844,9 +961,10 @@ const createUser = async (req, res) => {
       email: newUser.email,
       role: newUser.role,
     });
+
   } catch (error) {
-    console.error("Error during user creation:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error('Error during user creation:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
@@ -877,12 +995,12 @@ const createUser = async (req, res) => {
   }
 };*/
 
-const getUserById = async (req, res) => {
+const gettttet = async (req, res) => {
   try {
     const userId = req.params.id; // Access the user ID from req.params.id
 
     const user = await User.findById(userId).select(
-      "name image email password role address phone description lastname socialMedia phoneNumber"
+      "name  email password role description  domainOfActivity socialMedia address"
     );
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -947,45 +1065,54 @@ const rejectUserByEmail = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-const acceptUserByEmail2 = async (req, res) => {
+// Fetch recent searches for a given user
+const getRecentSearches = async (req, res) => {
   try {
-    const { email } = req.params;
+    const userId = req.user.id; // Assuming you're using an auth middleware to get the logged-in user
 
-    const user = await User.findOne({ email });
+    const recentSearches = await RecentSearch.find({ userId })
+      .sort({ createdAt: -1 }) // Sort by most recent
+      .limit(10); // Fetch the last 10 recent searches
 
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
-    }
-
-    user.isApproved = true;
-    await user.save();
-
-    res.status(200).json({ message: "Utilisateur approuvé avec succès." });
+    res.status(200).json(recentSearches);
   } catch (error) {
-    console.error("Erreur lors de l'approbation de l'utilisateur :", error);
-    res.status(500).json({ message: "Erreur interne du serveur." });
+    console.error('Error fetching recent searches:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
-const rejectUserByEmail2 = async (req, res) => {
+// Fetch recent pages for a given user
+const getRecentPages = async (req, res) => {
   try {
-    const { email } = req.params;
+    const userId = req.user.id; // Assuming you're using an auth middleware
 
-    const user = await User.findOneAndDelete({ email });
+    const recentPages = await RecentPage.find({ userId })
+      .sort({ createdAt: -1 }) // Sort by most recent
+      .limit(10); // Fetch the last 10 recent pages
 
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé." });
-    }
-
-    res.status(200).json({ message: "Utilisateur rejeté avec succès." });
+    res.status(200).json(recentPages);
   } catch (error) {
-    console.error("Erreur lors du rejet de l'utilisateur :", error);
-    res.status(500).json({ message: "Erreur interne du serveur." });
+    console.error('Error fetching recent pages:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };
+const getNotifications = async (req, res) => {
+  try {
+    // Fetch unread notifications for the given user
+    const notifications = await Notification.find({  isRead: false });
+
+    res.status(200).json(notifications); // Return the notifications
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
 module.exports = {
-  acceptUserByEmail2,
-  rejectUserByEmail2,
+  getRecentPages,
+  getRecentSearches,
 
   rejectUserByEmail,
   acceptUserByEmail,
@@ -1002,16 +1129,19 @@ module.exports = {
   getUsers,
   getUserCompany,
   createUser,
-  getUserById,
+  //getUserById,
   acceptUserByEmail,
   rejectUserByEmail,
   logoutUser,
-
+  
   getUserCompanyProfile,
-  getUserByIdd,
   getProfileJobSeekerById,
   getProfileJobSeekerByUserId,
   updateProfileJobSeekerById,
   getProfileCompanyById,
-  updateProfileCompany
+  updateProfileCompany,
+   gettttet,getNotifications
+
+
+ 
 };

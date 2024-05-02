@@ -17,6 +17,8 @@ const userCompanySchema = new Schema({
     twitter: String,
     linkedin: String,
   },
+  phone: Number,
+
   address: String,
   phoneNumber: String,
   domainOfActivity: String,
