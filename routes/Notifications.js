@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Notification = require("../models/notification");
+const Notifications = require("../models/Notifications");
 const authMiddleware = require("../midill/authMiddleware");
 
 
@@ -8,7 +8,7 @@ const authMiddleware = require("../midill/authMiddleware");
 router.get('/notifications', authMiddleware, async (req, res) => {
     try {
       const jobSeekerId = req.user.id;
-      const notifications = await Notification.find({ job_seeker: jobSeekerId }).populate('job_offer', 'title');
+      const notifications = await Notifications.find({ job_seeker: jobSeekerId }).populate('job_offer', 'title');
       console.log(notifications);
       res.status(200).json(notifications);
     } catch (err) {
@@ -20,7 +20,7 @@ router.get('/notifications', authMiddleware, async (req, res) => {
   router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const notificationId = req.params.id;
-        const deletedNotification = await Notification.findByIdAndDelete(notificationId);
+        const deletedNotification = await Notifications.findByIdAndDelete(notificationId);
         if (!deletedNotification) {
             // La notification n'a pas été trouvée
             return res.status(404).json({ error: 'Notification not found' });

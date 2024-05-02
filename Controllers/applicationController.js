@@ -1,7 +1,7 @@
 // applicationController.js
 
 const express = require("express");
-const Notification = require ('../models/notification');
+const Notifications = require ('../models/Notifications');
 const Application = require("../models/application"); 
 const nodemailer = require('nodemailer');
 
@@ -103,7 +103,7 @@ async function acceptApplication(req, res) {
         }
       });
   
-      const notification = new Notification({
+      const notification = new Notifications({
         job_seeker: application.job_seeker,
         type: 'accepted',
         application: id,
@@ -157,7 +157,7 @@ async function rejectApplication(req, res) {
       });
   
          // Créer une notification pour indiquer que l'application a été acceptée
-         const notification = new Notification({
+         const notification = new Notifications({
           job_seeker: application.job_seeker,
           type: 'rejected',
           application: id,
