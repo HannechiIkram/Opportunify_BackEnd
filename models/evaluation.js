@@ -12,6 +12,9 @@ const evaluationSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   questions: [questionSchema],
+  category: { type: String, required: true },
+  difficulty: { type: String, required: true },
+  keywords: [String],
 });
 
 module.exports = mongoose.model('Evaluation', evaluationSchema);

@@ -1,11 +1,12 @@
 // profileCompanyModel.js
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const profileCompanySchema = new mongoose.Schema({
   userCid: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true, 
+    ref: "User",
+    required: true,
   },
   name: String,
   email: {
@@ -25,7 +26,8 @@ const profileCompanySchema = new mongoose.Schema({
   domainOfActivity: String,
   resetToken: String,
   resetTokenExpires: Date,
-  image: String 
+  image: String,
+  
   // Add more fields as needed
 });
 
