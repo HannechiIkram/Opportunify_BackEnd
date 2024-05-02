@@ -2,6 +2,7 @@ const express = require("express");
 const User = require ("../models/user")
 const job_offer = require("../models/job_offer")
 
+const Notification = require('../models/Notification');
 
 const UserCompanyModel = require('../models/user-company');
 
@@ -161,7 +162,7 @@ if (!salaryRegex.test(salary_informations)) {
       return res.status(400).json({ error: 'Invalid phone number format.' });
     }
     const accountSid = 'AC9775026b390d558d55b42e4bb03e28e7';
-    const authToken = '2fe4699e0dbd4c4c2608c46691d4c5ab';
+    const authToken = 'fd3f0a5781f21e03333f468a4a594d1b';
     const client = require('twilio')(accountSid, authToken);
     // Envoi du SMS
     await client.messages.create({
@@ -176,5 +177,28 @@ if (!salaryRegex.test(salary_informations)) {
   }
 }
 
+async function createNotification(req, res) {
+  try {
 
-module.exports = { getall, getbyid , add ,getoffershomepage};
+    const { userId, message } = req.body; // Vérifiez que userId et message existent
+    
+    if (!userId) {
+      return res.status(400).json({ error: "userId est requis." });
+    }
+    
+    if (!message) {
+      return res.status(400).json({ error: "message est requis." });
+    }
+
+    const notification = new Notification({ userId, message });
+
+    await notification.save();
+    res.status(201).json({ success: true, notification });
+  } catch (error) {
+    console.error("Erreur lors de la création de la notification:", error);
+    res.status(500).json({ error: "Erreur interne du serveur." });
+  }
+}
+
+
+module.exports = { getall,createNotification, getbyid , add ,getoffershomepage};

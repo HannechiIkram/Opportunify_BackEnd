@@ -2,10 +2,14 @@ var express = require("express");
 var router = express.Router();
 const OpenAI = require("openai");
 require('dotenv').config();
-
+const UserModel = require('../models/user');
+const mongoose = require('mongoose');
+const { createNotification } = require('../Controllers/job-offerController'); // Fonction de création de notifications
+const { getNotifications } = require('../Controllers/UserController');
+const  Notification = require('../models/Notification');
 const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
+const { gettttet } = require('../Controllers/UserController')
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -69,7 +73,7 @@ const {
   refreshAccessToken,
   forgotPassword,
   resetPassword,
-  getUserById,
+ // getUserById,
   getProfileJobSeekerById,
   updateProfileCompany
 } = require("../Controllers/UserController");
@@ -107,11 +111,22 @@ router.use(
 );
 router.post("/logout", authMiddleware, logoutUser);
 
-router.get('/:id',authMiddleware, getUserById);
+//router.get('/:id', getUserById);
 
 router.post("/registeruser", registerUser);
 
 router.post("/registerjobseeker", registerUserjobseeker);
+// Endpoint to mark all notifications as read for a specific user
+router.put('/mark-all-read', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await Notification.updateMany({ userId, read: false }, { read: true }); // Update unread to read
+    res.status(200).json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    console.error('Error marking notifications as read:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 //
 router.get("/jobSeekerProfile", getUserJobSeekerProfile);
@@ -122,7 +137,6 @@ router.get("/profile/:_id", getUserJobSeekerById);
 router.get("/getProfileCompanyById/:profileId", getProfileCompanyById);
 
 //router.get('/getAllProfileCompanies',getAllProfileCompanies);
-
 router.get("/getProfileJobSeekerById/:profileId", getProfileJobSeekerById);
 router.put("/updateProfileJobSeekerById/:profileid", async (req, res) => {
   try {
@@ -164,7 +178,7 @@ router.put("/updateProfileCompany/:profileid", async (req, res) => {
 router.get('/getAllJobSeekerProfiles',getAllJobSeekerProfiles);
 
 router.get("/getUserJobSeekers", getUserJobSeekers);
-router.get("/getUser/:userId", getUserById);
+//////////////////////router.get("/getUser/:userId", getUserById);
 
 //
 
@@ -210,6 +224,7 @@ router.get(
     failureRedirect: "/login", // Redirect to login page if authentication fails
   })
 );
+router.get("/hey/:id", gettttet);
 
 
 router.get("/search/company/:name", async function (req, res) {
@@ -673,5 +688,74 @@ to: '+21699333589'
       });
     });
 });
+/*router.get('/getUserName',authMiddleware, async (req, res) => {
+  try {
+    // Vérifiez si req.user est défini et que req.user.id est valide
+    if (!req.user || !mongoose.Types.ObjectId.isValid(req.user.id)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const userId = req.user.id; // Extraire l'ID utilisateur
+    const user = await UserModel.findById(userId); // Utiliser cet ID pour chercher dans la base de données
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ userName: user.name });
+  } catch (error) {
+    console.error('Error fetching user name:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});*/
+// Route to get recent searches for the logged-in user
+router.get('/recent-searches',authMiddleware, (req, res) => {
+  const userId = req.user.id; // Assuming this is where you get the user ID
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
+
+  UserModel.findById(userId)
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(user.recentSearches);
+    })
+    .catch(error => {
+      console.error('Error fetching recent searches:', error);
+      res.status(500).json({ error: 'Server error' });
+    });
+});
+// Route to get recent pages for the logged-in user
+router.get('/recent-searches', authMiddleware,(req, res) => {
+  const userId = req.user.id;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    UserModel.findById(userId, 'recentSearches')
+      .then(user => {
+        if (!user) {
+          res.status(404).json({ error: 'User not found' });
+        } else {
+          res.json(user.recentSearches);
+        }
+      })
+      .catch(error => {
+        throw error;
+      });
+  } catch (error) {
+    console.error('Error fetching recent searches:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+router.post("/notification",createNotification);
+
+router.get('/admin', authMiddleware ,getNotifications); // Endpoint pour récupérer les notifications
+
 
 module.exports = router;

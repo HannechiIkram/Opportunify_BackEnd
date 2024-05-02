@@ -11,13 +11,15 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
 const slowDown = require("express-slow-down");
+const { createNotification } = require('./job-offerController'); // Fonction de création de notifications
+const Notification = require("../models/Notification");
 const passport = require("passport");
 const InstagramStrategy = require("passport-instagram").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 const UserJobSeekerModel = require('../models/user-jobseeker'); 
-
+// Modifier la fonction registerUser pour générer la notification
 const registerUser = async (req, res) => {
   try {
     const { name,email, password,lastname, role ,description,phone,phoneNumber,socialMedia,address,imageUrl } = req.body;
@@ -87,94 +89,117 @@ const newUserJobSeeker = await UserJobSeekerModel.create({
 
 
 
+
 // Import the transporter configuration (make sure the path is correct)
 const transporter = require('../nodemailer-config');
-;const registerUserCompany = async (req, res) => {
+const registerUserCompany = async (req, res) => {
   try {
-    const { name, email, password, matriculeFiscale, description, socialMedia, address, phoneNumber, domainOfActivity, image } = req.body;
+    const {
+      name,
+      email,
+      password,
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image
+    } = req.body;
 
-    // Vérification de la présence des champs obligatoires
+    // Valider les entrées
     if (!name || !email || !password || !phoneNumber) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
+      res.status(400).json({ error: 'Name, email, password, and phone number are required' });
+      return; // S'assurer d'arrêter l'exécution
     }
 
-    // Validation de la longueur du mot de passe
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      return;
     }
 
-    // Vérification si l'email est déjà pris
     const exist = await UserCompanyModel.findOne({ email });
     if (exist) {
-      return res.status(400).json({ error: 'Email is already taken' });
+      res.status(400).json({ error: 'Email is already taken' });
+      return;
     }
 
-    // Validation du numéro de téléphone
     if (!/^\d{1,12}$/.test(phoneNumber)) {
-      return res.status(400).json({ error: 'Phone number should contain only digits and not exceed 12 characters' });
+      res.status(400).json({ error: 'Phone number should contain only digits and not exceed 12 characters' });
+      return;
     }
 
-    // Validation du domaine d'activité
     if (!/^[a-zA-Z]+$/.test(domainOfActivity)) {
-      return res.status(400).json({ error: 'Domain of activity should contain only letters' });
+      res.status(400).json({ error: 'Domain of activity should contain only letters' });
+      return;
     }
 
-    // Validation des liens des réseaux sociaux
+    if (!/^[a-zA-Z\s\n]+$/.test(description)) {
+      res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
+      return;
+    }
+
+    // Valider les liens de médias sociaux
     const socialMediaValidation = validateSocialMediaLinks(socialMedia);
     if (socialMediaValidation.error) {
-      return res.status(400).json({ error: socialMediaValidation.error });
+      res.status(400).json({ error: socialMediaValidation.error });
+      return; // Arrêtez l'exécution si une erreur survient
     }
 
-   // Validation de la description
-if (!/^[a-zA-Z\s\n]+$/.test(description)) {
-  return res.status(400).json({ error: 'Description should contain only letters, spaces, and paragraphs' });
-}
-// Check if user already existstry {
-  const existingUser = await UserModel.findOne({ email });
-  if (existingUser) {
-    return res.status(400).json({ error: 'Email is already taken' });
+    // Créer le nouvel utilisateur
+    const hashedPassword = await hashPassword(password);
+    const newCompanyUser = await UserCompanyModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image: req.file ? req.file.path : '',
+    });
+
+    const newUser = await UserModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'company',
+      matriculeFiscale,
+      description,
+      socialMedia,
+      address,
+      phoneNumber,
+      domainOfActivity,
+      image: req.file ? req.file.path : '',
+    });
+
+    // Créer une notification
+    const adminUser = await UserModel.findOne({ role: 'admin' });
+    if (adminUser) {
+      const message = `A new user has registered: ${newUser.name}`;
+      try {
+        await createNotification({ body: { userId: adminUser._id, message } }, res); // Attention aux erreurs potentielles
+      } catch (error) {
+        console.error('Error in createNotification:', error);
+        // Pas de nouvelle réponse ici, car la réponse finale viendra après cette section
+      }
+    }
+
+    // Réponse de succès finale
+    res.status(201).json({ msg: 'User added successfully', newUser, newCompanyUser });
+    return; // Assurez-vous d'arrêter l'exécution après l'envoi de la réponse
+
+  } catch (error) {
+    console.error('Error in registerUserCompany:', error);
+    if (!res.headersSent) { // Empêcher un double envoi de réponse
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+    return; // Toujours arrêter après une réponse
   }
-  
-  const imageUrl = req.file ? req.file.path : ''; // If req.file is undefined, set imageUrl to an empty string
+};
 
-  const hashedPassword = await hashPassword(password);
-
-  const newCompanyUser = await UserCompanyModel.create({
-    name,
-    email,
-    password: hashedPassword,
-    matriculeFiscale,
-    description,
-    socialMedia,
-    address,
-    phoneNumber,
-    domainOfActivity,
-    image: imageUrl // Add image URL to user data
-
-  });
-
-  const newUser = await UserModel.create({
-    name,
-    email,
-    password: hashedPassword,
-    role: 'company',
-    matriculeFiscale,
-    description,
-    socialMedia,
-    address,
-    phoneNumber,
-    domainOfActivity,
-    image: imageUrl // Add image URL to user data
-
-  });
-
-  return res.status(201).json({ msg: "User added successfully",  newUser,newCompanyUser });
-} catch (error) {
-  console.error(error);
-  return res.status(500).json({ error: 'Internal Server Error' });
-}
-}
-// Function to validate social media links
 const validateSocialMediaLinks = (socialMedia) => {
   for (const key in socialMedia) {
     const link = socialMedia[key];
@@ -183,9 +208,7 @@ const validateSocialMediaLinks = (socialMedia) => {
     if (!urlRegex.test(link)) {
       return { error: `${key} should be a valid URL` };
     }
-  }
-///
-  return { valid: true };
+  }  return { valid: true };
 };
 
 ///
@@ -631,8 +654,8 @@ const getUserCompanyProfile = async (req, res) => {
 };
 
 //
-
-const getUserByIdd = async (req, res) => {
+/*
+const getUserById= async (req, res) => {
   try {
     const userId = req.params.userId; // Assuming you pass the user ID as a URL parameter
 
@@ -649,7 +672,7 @@ const getUserByIdd = async (req, res) => {
     console.error("Error fetching user by ID:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
-};
+};*/
 
 const getAllJobSeekerProfiles = async (req, res) => {
   try {
@@ -976,12 +999,12 @@ const createUser = async (req, res) => {
   }
 };*/
 
-const getUserById = async (req, res) => {
+const gettttet = async (req, res) => {
   try {
     const userId = req.params.id; // Access the user ID from req.params.id
 
     const user = await User.findById(userId).select(
-      "name image email password role address phone description lastname socialMedia phoneNumber"
+      "name  email password role description  domainOfActivity phoneNumber phone socialMedia address"
     );
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -1046,8 +1069,54 @@ const rejectUserByEmail = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+// Fetch recent searches for a given user
+const getRecentSearches = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming you're using an auth middleware to get the logged-in user
+
+    const recentSearches = await RecentSearch.find({ userId })
+      .sort({ createdAt: -1 }) // Sort by most recent
+      .limit(10); // Fetch the last 10 recent searches
+
+    res.status(200).json(recentSearches);
+  } catch (error) {
+    console.error('Error fetching recent searches:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Fetch recent pages for a given user
+const getRecentPages = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming you're using an auth middleware
+
+    const recentPages = await RecentPage.find({ userId })
+      .sort({ createdAt: -1 }) // Sort by most recent
+      .limit(10); // Fetch the last 10 recent pages
+
+    res.status(200).json(recentPages);
+  } catch (error) {
+    console.error('Error fetching recent pages:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+const getNotifications = async (req, res) => {
+  try {
+    // Fetch unread notifications for the given user
+    const notifications = await Notification.find({  isRead: false });
+
+    res.status(200).json(notifications); // Return the notifications
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
 module.exports = {
- 
+  getRecentPages,
+  getRecentSearches,
 
   rejectUserByEmail,
   acceptUserByEmail,
@@ -1064,16 +1133,17 @@ module.exports = {
   getUsers,
   getUserCompany,
   createUser,
-  getUserById,
+  //getUserById,
   acceptUserByEmail,
   rejectUserByEmail,
   logoutUser,
-
+  
   getUserCompanyProfile,
-  getUserByIdd,
   getProfileJobSeekerById,
   getProfileJobSeekerByUserId,
   updateProfileJobSeekerById,
   getProfileCompanyById,
-  updateProfileCompany
+  updateProfileCompany,
+   gettttet,getNotifications
+
 };
