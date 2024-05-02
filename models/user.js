@@ -35,6 +35,11 @@ email: { type: String, required: true },
   isBlocked: { type: Boolean, default: false },
   resetToken: String,
   resetTokenExpires: Date,
+  //////
+  mfaCode: {
+    type: Number,
+    default: null // Set the default value to null
+}
 });
 
 // Add permissions based on user role
