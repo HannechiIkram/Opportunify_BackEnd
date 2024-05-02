@@ -20,6 +20,11 @@ const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
 const jobsRouter = require("./routes/jobs");
 const jobOfferRouter = require("./routes/job_offer");
+
+const OCRrouter = require("./routes/OCR-upload-image");
+const MFA=require("./routes/MFA-verification");
+
+const interviewRouter= require("./routes/Interview");
 const statusRoutes = require("./routes/statusRoutes");
 const searchRoutes = require("./routes/search");
 const profileRoute = require("./routes/profile");
@@ -58,7 +63,13 @@ app.use("/job_offer", jobOfferRouter);
 app.use("/jobs", jobsRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
-app.use('/evaluations', evaluationRouter)
+app.use('/evaluations', evaluationRouter);
+
+///samar
+app.use('/OCR',OCRrouter);
+app.use('/MFA',MFA);
+
+app.use('/Interview',interviewRouter)
 
 app.use('/status', statusRoutes);
 app.use('/search', searchRoutes);

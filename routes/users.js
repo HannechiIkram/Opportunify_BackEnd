@@ -1,8 +1,18 @@
 var express = require("express");
 var router = express.Router();
 const OpenAI = require("openai");
-
-
+require('dotenv').config();
+const UserModel = require('../models/user');
+const mongoose = require('mongoose');
+const { createNotification } = require('../Controllers/job-offerController'); // Fonction de création de notifications
+const { getNotifications } = require('../Controllers/UserController');
+const  Notification = require('../models/Notification');
+const twilio = require('twilio');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const { gettttet } = require('../Controllers/UserController')
+/*const twilio = require('twilio');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);*/
+const { job_offer } = require ('../models/job_offer');
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -66,7 +76,7 @@ const {
   refreshAccessToken,
   forgotPassword,
   resetPassword,
-  getUserById,
+ // getUserById,
   getProfileJobSeekerById,
   updateProfileCompany
 } = require("../Controllers/UserController");
@@ -104,11 +114,22 @@ router.use(
 );
 router.post("/logout", authMiddleware, logoutUser);
 
-router.get('/:id',authMiddleware, getUserById);
+//router.get('/:id', getUserById);
 
 router.post("/registeruser", registerUser);
 
 router.post("/registerjobseeker", registerUserjobseeker);
+// Endpoint to mark all notifications as read for a specific user
+router.put('/mark-all-read', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await Notification.updateMany({ userId, read: false }, { read: true }); // Update unread to read
+    res.status(200).json({ message: 'All notifications marked as read' });
+  } catch (error) {
+    console.error('Error marking notifications as read:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 //
 router.get("/jobSeekerProfile", getUserJobSeekerProfile);
@@ -119,7 +140,6 @@ router.get("/profile/:_id", getUserJobSeekerById);
 router.get("/getProfileCompanyById/:profileId", getProfileCompanyById);
 
 //router.get('/getAllProfileCompanies',getAllProfileCompanies);
-
 router.get("/getProfileJobSeekerById/:profileId", getProfileJobSeekerById);
 router.put("/updateProfileJobSeekerById/:profileid", async (req, res) => {
   try {
@@ -161,11 +181,13 @@ router.put("/updateProfileCompany/:profileid", async (req, res) => {
 router.get('/getAllJobSeekerProfiles',getAllJobSeekerProfiles);
 
 router.get("/getUserJobSeekers", getUserJobSeekers);
-router.get("/getUser/:userId", getUserById);
+//////////////////////router.get("/getUser/:userId", getUserById);
 
 //
+
 //router.post('/registercompany',  createUserCompany)
 router.post('/createUser',authMiddleware, createUser);
+//router.post('/registercompany',createUserCompany)
 router.get("/", getUsers);
 router.get("/company", authMiddleware, getUserCompany);
 router.post("/registerCompany", registerUserCompany);
@@ -205,6 +227,7 @@ router.get(
     failureRedirect: "/login", // Redirect to login page if authentication fails
   })
 );
+router.get("/hey/:id", gettttet);
 
 
 router.get("/search/company/:name", async function (req, res) {
@@ -336,6 +359,32 @@ router.put('/profileJobSeeker_git/:profileId', async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+router.put('/profileJobSeeker_technologies/:profileId', async (req, res) => {
+  try {
+    const profileId = req.params.profileId;
+    const { technologies } = req.body;
+
+    // Find the profile job seeker by _id
+    const profileJobSeeker = await profileJobSeekerModel.findById(profileId);
+
+    if (!profileJobSeeker) {
+      return res.status(404).json({ error: 'Profile job seeker not found' });
+    }
+
+    // Update the technologies field
+    profileJobSeeker.technologies = technologies;
+
+    // Save the updated profile job seeker
+    await profileJobSeeker.save();
+
+    return res.status(200).json({ message: 'Technologies updated successfully', profileJobSeeker });
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
@@ -571,7 +620,7 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
 const openai = new OpenAI({
-  apiKey: "sk-proj-0OPaRvMhBzLwLcbohb24T3BlbkFJNvTVQWcRgKv3F39XUasw", // Use environment variable for API key
+  apiKey: "sk-proj-qR0BKy1yRW4QMUASZrkCT3BlbkFJ6tNptOYDNcXfK7LWQxNo", // Use environment variable for API key
 });
 
 
@@ -604,6 +653,124 @@ router.post("/ask", async (req, res) => {
   } catch (error) {
     console.error("Error calling OpenAI: ", error);
     res.status(500).send("Error generating response from OpenAI");
+  }
+});
+function isValidPhoneNumber(phone) {
+  // Assurez-vous que le numéro commence par + suivi de 1 à 15 chiffres
+  const regex = /^\+\d{1,15}$/;
+  return regex.test(phone);
+}
+router.post('/send-sms', (req, res) => {
+  const { to, message } = req.body;
+
+  // Validation du format du numéro
+  if (!isValidPhoneNumber(to)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid phone number format. Ensure it is in E.164 format.',
+    });
+  }
+  const accountSid = 'AC9775026b390d558d55b42e4bb03e28e7';
+  const authToken = '2fe4699e0dbd4c4c2608c46691d4c5ab';
+  const client = require('twilio')(accountSid, authToken);
+  client.messages
+  .create({
+    body: message,
+
+    from: '+12156218082',
+to: '+21699333589'
+})
+    .then((msg) => {
+      res.status(200).json({ success: true, sid: msg.sid });
+    })
+    .catch((error) => {
+      console.error('Twilio Error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    });
+});
+router.get('/getUserName',authMiddleware, async (req, res) => {
+  try {
+    // Vérifiez si req.user est défini et que req.user.id est valide
+    if (!req.user || !mongoose.Types.ObjectId.isValid(req.user.id)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const userId = req.user.id; // Extraire l'ID utilisateur
+    const user = await UserModel.findById(userId); // Utiliser cet ID pour chercher dans la base de données
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ userName: user.name });
+  } catch (error) {
+    console.error('Error fetching user name:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+// Route to get recent searches for the logged-in user
+router.get('/recent-searches',authMiddleware, (req, res) => {
+  const userId = req.user.id; // Assuming this is where you get the user ID
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
+
+  UserModel.findById(userId)
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(user.recentSearches);
+    })
+    .catch(error => {
+      console.error('Error fetching recent searches:', error);
+      res.status(500).json({ error: 'Server error' });
+    });
+});
+// Route to get recent pages for the logged-in user
+router.get('/recent-searches', authMiddleware,(req, res) => {
+  const userId = req.user.id;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    UserModel.findById(userId, 'recentSearches')
+      .then(user => {
+        if (!user) {
+          res.status(404).json({ error: 'User not found' });
+        } else {
+          res.json(user.recentSearches);
+        }
+      })
+      .catch(error => {
+        throw error;
+      });
+  } catch (error) {
+    console.error('Error fetching recent searches:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+router.post("/notification",createNotification);
+
+router.get('/admin', authMiddleware ,getNotifications); // Endpoint pour récupérer les notifications
+router.get('/job_offer/:id', async (req, res) => {
+  try {
+    const jobOffer = await job_offer.findById(req.params.id).populate('company'); // Utilisez 'populate' pour obtenir les détails de la société
+
+    if (!jobOffer) {
+      return res.status(404).json({ error: 'Job offer not found' });
+    }
+
+    res.status(200).json(jobOffer);
+  } catch (error) {
+    console.error('Error fetching job offer by ID:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

@@ -11,7 +11,16 @@ const userJobSeekerSchema = new Schema({
   }, 
   birthdate: Date,
   phone: Number,
+  matriculeFiscale: String,
+  description: String,
+  socialMedia: {
+    facebook: String,
+    twitter: String,
+    linkedin: String,
+  },
   address: String,
+  phoneNumber: String,
+  domainOfActivity: String,
   password: String,
 // Autres champs de votre modèle...
 image: {
