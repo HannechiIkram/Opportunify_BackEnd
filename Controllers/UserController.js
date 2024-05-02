@@ -12,7 +12,7 @@ const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
 const slowDown = require("express-slow-down");
 const { createNotification } = require('./job-offerController'); // Fonction de création de notifications
-
+const Notification  = require ('../models/Notification');
 const passport = require("passport");
 const InstagramStrategy = require("passport-instagram").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;

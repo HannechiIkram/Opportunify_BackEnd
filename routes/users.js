@@ -10,6 +10,7 @@ const { getNotifications } = require('../Controllers/UserController');
 const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const { gettttet } = require('../Controllers/UserController')
+const  Notification = require('../models/Notification')
 /*const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);*/
 const { job_offer } = require ('../models/job_offer');

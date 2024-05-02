@@ -3,6 +3,7 @@ const job_offer = require("../models/job_offer")
 
 const User = require ('../models/user')
 const UserCompanyModel = require('../models/user-company');
+const Notification  = require ('../models/Notification');
 
 async function getall(req, res) {
   try {
