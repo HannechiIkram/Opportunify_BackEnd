@@ -18,7 +18,11 @@ const indexRouter = require('./routes/index');
 const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
 const jobOfferRouter = require("./routes/job_offer");
+
 const OCRrouter = require("./routes/OCR-upload-image");
+const MFA=require("./routes/MFA-verification");
+
+const interviewRouter= require("./routes/Interview");
 
 const app = express();
 
@@ -56,7 +60,12 @@ app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
 app.use('/evaluations', evaluationRouter);
 
+///samar
 app.use('/OCR',OCRrouter);
+app.use('/MFA',MFA);
+
+app.use('/Interview',interviewRouter)
+
 
 // Gestion des erreurs
 app.use(function(req, res, next) {

@@ -10,6 +10,18 @@ const transporter = nodemailer.createTransport({
     user: 'ikram.hannechi@esprit.tn',  // Replace with your Outlook/Office 365 email address
     pass: 'Ih123456**',  // Use your Outlook/Office 365 email password
   }, 
+  
 });
-
-module.exports = transporter;
+const transportersamar = nodemailer.createTransport({
+  service: 'Outlook',
+  auth: {
+      user: 'opportunify@outlook.com',
+      pass: 'Ahmed123.'
+  },
+  tls: {
+      rejectUnauthorized: false // Trust the self-signed certificate
+  }
+  
+  
+});
+module.exports = {transporter,transportersamar};

@@ -226,7 +226,6 @@ const speedLimiter = slowDown({
   delayMs: () => 180000, // Delay subsequent requests by 3 minutes
 });
 
-
 ///// login with Protection Against Brute Force Attacks
 
 const loginUser = async (req, res) => {
@@ -370,8 +369,6 @@ if (    user.isBlocked ){return res.status(404).json({error:"User is blocked"})}
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    // Return the access token, user data, jobSeekerId, and profileId in the response
     res
       .status(200)
       .send({ accessToken, user, jobSeekerId, profileId, company_profileId });
@@ -380,7 +377,6 @@ if (    user.isBlocked ){return res.status(404).json({error:"User is blocked"})}
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }; 
-
 
 /*
 const getAllProfileCompanies = async (req, res) => {
@@ -1146,4 +1142,6 @@ module.exports = {
   updateProfileCompany,
    gettttet,getNotifications
 
+
+ 
 };
