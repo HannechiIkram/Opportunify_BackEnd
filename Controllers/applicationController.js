@@ -1,8 +1,8 @@
 // applicationController.js
 
 const express = require("express");
-
-const Application = require("../models/application"); // Corrected import statement
+const Notifications = require ('../models/Notifications');
+const Application = require("../models/application"); 
 const nodemailer = require('nodemailer');
 
 
@@ -103,7 +103,13 @@ async function acceptApplication(req, res) {
         }
       });
   
-    
+      const notification = new Notifications({
+        job_seeker: application.job_seeker,
+        type: 'accepted',
+        application: id,
+      });
+      await notification.save();
+  
     // Mettre à jour l'état de l'application
     const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: true, rejected: false }, { new: true });
 
@@ -136,8 +142,8 @@ async function rejectApplication(req, res) {
   const mailOptions = {
     from: 'opportunify@outlook.com',
     to: jobSeekerEmail,
-    subject: 'Application Accepted ',
-    text: 'Your application has been accepted'
+    subject: 'Application Rejected ',
+    text: 'Your application has been rejected'
   };
 
     
@@ -150,7 +156,13 @@ async function rejectApplication(req, res) {
         }
       });
   
-    
+         // Créer une notification pour indiquer que l'application a été acceptée
+         const notification = new Notifications({
+          job_seeker: application.job_seeker,
+          type: 'rejected',
+          application: id,
+        });
+        await notification.save();
     // Mettre à jour l'état de l'application
     const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true });
 

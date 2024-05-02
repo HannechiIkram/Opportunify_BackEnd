@@ -12,6 +12,7 @@ const UserJobSeeker = require('../models/user-jobseeker'); // Assurez-vous de co
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const JobOffer = require('../models/job_offer'); 
+const Notifications = require ('../models/Notifications');
 
 const authMiddleware = require ('../midill/authMiddleware');
 
@@ -218,6 +219,11 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
       }
     });
 
+    const notification = new Notifications({
+      job_seeker: newApplication.job_seeker,
+      type: 'newapplication',
+    });
+    await notification.save();
     res.status(201).json({ message: 'Application submitted successfully' });
   } catch (error) {
     console.error('Error submitting application:', error);
@@ -351,7 +357,7 @@ router.get('/applications/search/joboffertitle',authMiddleware, async (req, res)
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-router.get('/search/:status', async (req, res) => {
+router.get('/search/:status',authMiddleware, async (req, res) => {
   const { status } = req.params;
   
   try {
@@ -371,8 +377,6 @@ router.get('/search/:status', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
-
 
 // Middleware to parse JSON requests
 router.use(bodyParser.json());
