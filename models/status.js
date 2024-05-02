@@ -18,11 +18,22 @@ const status = new Schema(
         type: Schema.Types.ObjectId,
         ref: "ProfileJobSeeker",
       },
+      {
+        type: Schema.Types.ObjectId,
+        ref: "ProfileCompany",
+      },
     ],
     comments: [
       new Schema(
         {
           profile: { type: Schema.Types.ObjectId, ref: "ProfileJobSeeker" },
+          commentContent: String,
+        },
+        { timestamps: true }
+      ),
+      new Schema(
+        {
+          profile: { type: Schema.Types.ObjectId, ref: "ProfileCompany" },
           commentContent: String,
         },
         { timestamps: true }

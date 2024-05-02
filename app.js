@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const mongoconnection = require("./database/mongodb.json");
 const cors = require('cors');
 const evaluationRouter = require('./routes/evaluations');
-const notificationRouter=require('./routes/notification')
+const notificationRouter=require('./routes/Notifications')
 
 const path = require('path');
 
@@ -19,6 +19,7 @@ require('dotenv').config();
 const indexRouter = require('./routes/index');
 const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
+const jobsRouter = require("./routes/jobs");
 const jobOfferRouter = require("./routes/job_offer");
 
 const OCRrouter = require("./routes/OCR-upload-image");
@@ -60,11 +61,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Utilisation des routes
 app.use('/', indexRouter);
 app.use("/job_offer", jobOfferRouter);
+app.use("/jobs", jobsRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
 app.use('/evaluations', evaluationRouter);
+app.use('/notifications', notificationRouter);
 
-app.use('/notifications', notificationRouter)
+
 
 ///samar
 app.use('/OCR',OCRrouter);

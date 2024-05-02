@@ -29,4 +29,40 @@ router.get("/users", async (req, res) => {
   }
 });
 
+router.get("/profile/:id", async (req, res) => {
+  try {
+    const profile = await ProfileJobSeeker.findById(req.params.id);
+    if (!profile) {
+      profile = await ProfileCompany.findById(req.params.id);
+    }
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    res.status(200).json(profile);
+  } catch (error) {
+    console.error("Error retrieving profile:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/all", async (req, res) => {
+  try {
+    const profileJobSeeker = await ProfileJobSeeker.find();
+    const profileCompany = await ProfileCompany.find(); // Changed 'ProfileCompany' to 'profileCompany'
+
+    if (profileJobSeeker.length === 0 && profileCompany.length === 0) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    // Combine both arrays into one
+    const allProfiles = [...profileJobSeeker, ...profileCompany];
+    console.log(allProfiles);
+    res.status(200).json(allProfiles);
+  } catch (error) {
+    console.error("Error retrieving profile:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 module.exports = router;
