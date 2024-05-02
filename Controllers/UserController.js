@@ -408,7 +408,7 @@ const forgotPassword = async (req, res) => {
     const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: "ikram.hannechi@esprit.tn",
+      from: "manel.tarhouni@esprit.tn",
       to: email,
       subject: "Réinitialisation de mot de passe",
       text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,

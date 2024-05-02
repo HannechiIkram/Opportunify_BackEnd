@@ -110,14 +110,14 @@ router.post('/send', authMiddleware, async (req, res) => {
     let transporter = nodemailer.createTransport({
       service: 'Outlook', // Utilisez le service Outlook
       auth: {
-        user: 'ikram.hannechi@esprit.tn', // Votre adresse e-mail Outlook
-        pass: 'Ih123456**' // Votre mot de passe Outlook
+        user: 'manel.tarhouni@esprit.tn', // Votre adresse e-mail Outlook
+        pass: '223Jft5504' // Votre mot de passe Outlook
       }
     });
 
     // Envoie le mail avec le contenu défini
     let info = await transporter.sendMail({
-      from: '"admin" ikram.hannechi@esprit.tn',
+      from: '"admin" manel.tarhouni@esprit.tn',
       to: recipientEmail,
       subject: 'Job Offer Details',
       text: emailContent // Utilisez le contenu de l'e-mail généré

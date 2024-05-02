@@ -32,8 +32,8 @@ router.get('/quiz/:id', async (req, res) => {
 // POST create a new evaluation
 router.post('/add', async (req, res) => {
   try {
-    const { title, description, questions } = req.body;
-    const newEvaluation = new Evaluation({ title, description, questions });
+    const { title, description, questions, category ,difficulty,keywords } = req.body;
+    const newEvaluation = new Evaluation({ title, description, questions, category ,difficulty,keywords });
     await newEvaluation.save();
     res.status(201).json(newEvaluation);
   } catch (error) {
@@ -45,8 +45,8 @@ router.post('/add', async (req, res) => {
 // PUT update an existing evaluation
 router.put('/update/:id', async (req, res) => {
   try {
-    const { title, description, questions } = req.body;
-    const updatedEvaluation = await Evaluation.findByIdAndUpdate(req.params.id, { title, description, questions }, { new: true });
+    const { title, description, questions, category ,difficulty,keywords} = req.body;
+    const updatedEvaluation = await Evaluation.findByIdAndUpdate(req.params.id, { title, description, questions, category ,difficulty,keywords  }, { new: true });
     if (!updatedEvaluation) {
       return res.status(404).json({ error: 'Evaluation not found' });
     }
@@ -84,6 +84,30 @@ router.post('/quiz/:id/submit', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  router.get('/search', async (req, res) => {
+    try {
+      const { category, difficulty, keywords } = req.query;
   
+      // Construire les filtres de recherche
+      const filters = {};
+      if (category) {
+        filters.category = category;
+      }
+      if (difficulty) {
+        filters.difficulty = difficulty;
+      }
+      if (keywords) {
+        filters.keywords = { $in: keywords.split(',') };
+      }
+  
+      // Effectuer la recherche avec les filtres
+      const evaluations = await Evaluation.find(filters);
+  
+      res.json(evaluations);
+    } catch (error) {
+      console.error('Error searching evaluations:', error);
+      res.status(500).json({ error: 'Error searching evaluations' });
+    }
+  });
 
 module.exports = router;

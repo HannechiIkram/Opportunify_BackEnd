@@ -571,7 +571,7 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
 const openai = new OpenAI({
-  apiKey: "sk-proj-0OPaRvMhBzLwLcbohb24T3BlbkFJNvTVQWcRgKv3F39XUasw", // Use environment variable for API key
+  apiKey: "sk-proj-OU9ehNZwSf8idYCn7L6wT3BlbkFJVtNJMRer7O5qm6RdWN6M", // Use environment variable for API key
 });
 
 
@@ -606,5 +606,7 @@ router.post("/ask", async (req, res) => {
     res.status(500).send("Error generating response from OpenAI");
   }
 });
+
+
 
 module.exports = router;
