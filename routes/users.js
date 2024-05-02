@@ -620,7 +620,7 @@ router.put("/approve/:email",authMiddleware, acceptUserByEmail);
 // Route pour rejeter un utilisateur
 router.delete("/:email",authMiddleware, rejectUserByEmail);
 const openai = new OpenAI({
-  apiKey: "sk-proj-P5IOAopcf0Pmoo7bvqV5T3BlbkFJqIQtewhDZuLpiFjryHMM", // Use environment variable for API key
+  apiKey: "sk-proj-qR0BKy1yRW4QMUASZrkCT3BlbkFJ6tNptOYDNcXfK7LWQxNo", // Use environment variable for API key
 });
 
 

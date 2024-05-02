@@ -1,9 +1,8 @@
 const express = require("express");
-const User = require ("../models/user")
 const job_offer = require("../models/job_offer")
 
 const Notification = require('../models/Notification');
-
+const User = require ('../models/user')
 const UserCompanyModel = require('../models/user-company');
 
 async function getall(req, res) {
@@ -88,6 +87,11 @@ async function add(req, res) {
 async function add(req, res) {
   try {
     const companyId = req.user.id; // ID de l'utilisateur connecté
+    const company = await User.findById(companyId);
+    if (!company) {
+      return res.status(404).json({ error: "Company not found" });
+    }
+    const companyName = company.name; // Assigner le nom de l'entreprise
 
     // Destructure the required fields from req.body
     const {
@@ -151,7 +155,9 @@ if (!salaryRegex.test(salary_informations)) {
       field,
       salary_informations,
       deadline,
-      company: companyId // Associé à l'utilisateur de l'entreprise connecté
+      company: companyId,// Associé à l'utilisateur de l'entreprise connecté
+      companyName    ,   // Nom de l'entreprise associée
+
     });
 
     await newJobOffer.save();

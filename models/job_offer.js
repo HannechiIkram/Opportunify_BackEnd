@@ -16,6 +16,7 @@ const job_offer = new Schema({
  company: { type: Schema.Types.ObjectId, ref: 'Usercompany' },
  deadline:Date,
 status:String,
+companyName: String, // Champ pour le nom de l'entreprise
 
 
 
