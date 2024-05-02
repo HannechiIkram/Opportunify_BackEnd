@@ -18,7 +18,7 @@ const indexRouter = require('./routes/index');
 const applicationRouter = require('./routes/application');
 const userRouter = require('./routes/users');
 const jobOfferRouter = require("./routes/job_offer");
-
+const interviewRouter= require("./routes/Interview");
 const app = express();
 
 // Connexion à MongoDB
@@ -53,8 +53,8 @@ app.use('/', indexRouter);
 app.use("/job_offer", jobOfferRouter);
 app.use('/applications', applicationRouter);
 app.use('/user', userRouter);
-app.use('/evaluations', evaluationRouter)
-
+app.use('/evaluations', evaluationRouter);
+app.use('/Interview',interviewRouter)
 
 // Gestion des erreurs
 app.use(function(req, res, next) {
