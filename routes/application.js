@@ -12,7 +12,7 @@ const UserJobSeeker = require('../models/user-jobseeker'); // Assurez-vous de co
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const JobOffer = require('../models/job_offer'); 
-const Notification = require ('../models/notification');
+const Notification = require ('../models/Notifications');
 
 const authMiddleware = require ('../midill/authMiddleware');
 

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Notification = require("../models/notification");
+const Notification = require("../models/Notifications");
 const authMiddleware = require("../midill/authMiddleware");
 
 

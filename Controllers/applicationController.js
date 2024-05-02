@@ -1,7 +1,7 @@
 // applicationController.js
 
 const express = require("express");
-const Notification = require ('../models/notification');
+const Notification = require ('../models/Notifications');
 const Application = require("../models/application"); 
 const nodemailer = require('nodemailer');
 
