@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
@@ -12,7 +11,11 @@ const UserJobSeeker = require('../models/user-jobseeker'); // Assurez-vous de co
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const JobOffer = require('../models/job_offer'); 
+
 const Notification = require ('../models/Notifications');
+
+const Notifications = require ('../models/Notifications');
+
 
 const authMiddleware = require ('../midill/authMiddleware');
 
@@ -219,7 +222,7 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
       }
     });
 
-    const notification = new Notification({
+    const notification = new Notifications({
       job_seeker: newApplication.job_seeker,
       type: 'newapplication',
     });

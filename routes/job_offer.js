@@ -8,7 +8,6 @@ const User = require('../models/user');
 const nodemailer = require('nodemailer');
 const Application = require('../models/application'); // Assurez-vous de spécifier le bon chemin vers votre modèle Application
 
-
 const isAdmin = accessControl(['admin']);
 const isCompany = accessControl(['company']);
 const isJobSeeker = accessControl(['job_seeker']);

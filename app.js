@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 const mongoconnection = require("./database/mongodb.json");
 const cors = require('cors');
 const evaluationRouter = require('./routes/evaluations');
-const notificationRouter=require('./routes/notification')
+const notificationRouter=require('./routes/Notifications')
 
 const path = require('path');
 
