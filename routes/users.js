@@ -691,7 +691,7 @@ to: '+21699333589'
       });
     });
 });
-/*router.get('/getUserName',authMiddleware, async (req, res) => {
+router.get('/getUserName',authMiddleware, async (req, res) => {
   try {
     // Vérifiez si req.user est défini et que req.user.id est valide
     if (!req.user || !mongoose.Types.ObjectId.isValid(req.user.id)) {
@@ -710,7 +710,7 @@ to: '+21699333589'
     console.error('Error fetching user name:', error);
     res.status(500).json({ error: 'Server error' });
   }
-});*/
+});
 // Route to get recent searches for the logged-in user
 router.get('/recent-searches',authMiddleware, (req, res) => {
   const userId = req.user.id; // Assuming this is where you get the user ID
