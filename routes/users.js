@@ -12,7 +12,7 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
 const { gettttet } = require('../Controllers/UserController')
 /*const twilio = require('twilio');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);*/
-
+const { job_offer } = require ('../models/job_offer');
 //const OpenAI = require("openai"); // Utilisation de require
 const multer = require('multer');
 //const uploadimage= multer({dest:'uploadsimages/'})
@@ -759,6 +759,19 @@ router.get('/recent-searches', authMiddleware,(req, res) => {
 router.post("/notification",createNotification);
 
 router.get('/admin', authMiddleware ,getNotifications); // Endpoint pour récupérer les notifications
+router.get('/job_offer/:id', async (req, res) => {
+  try {
+    const jobOffer = await job_offer.findById(req.params.id).populate('company'); // Utilisez 'populate' pour obtenir les détails de la société
 
+    if (!jobOffer) {
+      return res.status(404).json({ error: 'Job offer not found' });
+    }
+
+    res.status(200).json(jobOffer);
+  } catch (error) {
+    console.error('Error fetching job offer by ID:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 module.exports = router;

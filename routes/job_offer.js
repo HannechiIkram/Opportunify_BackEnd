@@ -156,9 +156,9 @@ router.get("/getall",authMiddleware, userController.getall);
 
 router.get("/get/:id", userController.getbyid);
 //router.post("/add", userController.add);
-router.post('/add',authMiddleware, userController.add);
+router.post('/add',authMiddleware, userController.add);/*
 
-
+*/
 // Route pour envoyer les détails de l'offre et un message personnalisé par e-mail
 router.post('/send', authMiddleware, async (req, res) => {
   try {
