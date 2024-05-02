@@ -12,6 +12,7 @@ const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
 const slowDown = require("express-slow-down");
 const { createNotification } = require('./job-offerController'); // Fonction de création de notifications
+const { transporter } = require ('../nodemailer-config')
 const Notification  = require ('../models/Notification');
 const passport = require("passport");
 const InstagramStrategy = require("passport-instagram").Strategy;
@@ -19,6 +20,7 @@ const FacebookStrategy = require("passport-facebook").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 const UserJobSeekerModel = require('../models/user-jobseeker'); 
+
 // Modifier la fonction registerUser pour générer la notification
 const registerUser = async (req, res) => {
   try {
@@ -91,7 +93,6 @@ const newUserJobSeeker = await UserJobSeekerModel.create({
 
 
 // Import the transporter configuration (make sure the path is correct)
-const transporter = require('../nodemailer-config');
 const registerUserCompany = async (req, res) => {
   try {
     const {
@@ -459,7 +460,7 @@ const forgotPassword = async (req, res) => {
     const resetLink = `http://votre_application.com/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: "manel.tarhouni@esprit.tn",
+      from: "ikram.hannechi@esprit.tn",
       to: email,
       subject: "Réinitialisation de mot de passe",
       text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe : ${resetLink}`,
