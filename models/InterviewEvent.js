@@ -17,11 +17,15 @@ required:true
   },
   location: {
     type: String,
+    
+  },
+  starthour:{
+    type: String,
     required:true
   },
   intervieweremail: {
     type: String,
-    required:true
+  
   },
   eventMode:{
     type: String,
@@ -41,17 +45,18 @@ required:true
       ref: "ProfileCompany" 
      },
 
- /*
+ 
      CompanyName:{
     type: String,
   },
+  /*
   jobseekerName:{
     type: String,
   },
-
-  joboffer:{
+*/
+  joboffertitle:{
     type: String,
-  },*/
+  },
 });
 
 const InterviewEvent = mongoose.model('InterviewEvent', interviewEventSchema);
