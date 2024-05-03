@@ -106,16 +106,16 @@ router.post('/extract-job-info', upload.single('image'), async (req, res) => {
           description: descriptionMatch ? descriptionMatch[1].trim() : null,
           qualifications: qualificationsMatch ? qualificationsMatch[1].trim() : null,
           responsibilities: responsibilitiesMatch ? responsibilitiesMatch[1].trim() : null,
-          location: locationMatch ? locationMatch[1].trim() : null,
-         Salary_Information: salary_informationMatch ? salary_informationMatch[1].trim():null,
-         Workplace_Type : Workplace_TypeMatch ? Workplace_TypeMatch[1].trim():null,
+          lieu: locationMatch ? locationMatch[1].trim() : null,
+          salary_informations: salary_informationMatch ? salary_informationMatch[1].trim():null,
+          workplace_type : Workplace_TypeMatch ? Workplace_TypeMatch[1].trim():null,
          Company : CompanyMatch ? CompanyMatch[1].trim():null, 
-         Field : fieldMatch ? fieldMatch[1].trim():null,
-         Language : LangaguaeMatch ? LangaguaeMatch[1].trim():null,
-         Deadline : DeadlineMatch ? DeadlineMatch[1].trim():null,
+         field : fieldMatch ? fieldMatch[1].trim():null,
+         langue : LangaguaeMatch ? LangaguaeMatch[1].trim():null,
+         deadline : DeadlineMatch ? DeadlineMatch[1].trim():null,
 
          
-
+        
       };
 
       
