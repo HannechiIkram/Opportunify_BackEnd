@@ -58,6 +58,75 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+router.post('/extract-job-info', upload.single('image'), async (req, res) => {
+  try {
+     
+      if (!req.file) {
+          return res.status(400).json({ success: false, error: 'No image file uploaded.' });
+      }
+
+      
+      const { data: { text } } = await Tesseract.recognize(req.file.path, 'eng');
+
+      ////lkelmet li ynajmou ykounou mawjoudin as job offer details
+      const titleRegex = /(?:title|Job Offer): (.+)/i;
+      const descriptionRegex = /(?:description|Description): (.+)/i;
+      const qualificationsRegex = /(?:qualifications|Qualifications):(.+)/i;
+      const responsibilitiesRegex = /(?:responsibilities|Responsibilities): (.+)/i;
+      const locationRegex = /(?:location|city|Location|City|Lieu): (.+)/i; 
+      const salary_informationRegex = /(?:Salary Information|Salary): (.+)/i;
+      const Workplace_TypeRegex = /Workplace Type: (.+)/i;
+      const CompanyRegex = /(?:company|Company|companyName) (.+)/i;
+      const fieldRegex = /(?:Field|field): (.+)/i;
+      const LangaguaeRegex= /(?:Language|language): (.+)/i;
+
+      const DeadlineRegrex=/(?:Deadline|deadline): (.+)/i;
+
+      ////////extraction
+      const titleMatch = titleRegex.exec(text);
+      const descriptionMatch = descriptionRegex.exec(text);
+      const qualificationsMatch = qualificationsRegex.exec(text);
+      const responsibilitiesMatch = responsibilitiesRegex.exec(text);
+      const locationMatch = locationRegex.exec(text);
+      const salary_informationMatch = salary_informationRegex.exec(text);
+      const Workplace_TypeMatch = Workplace_TypeRegex.exec(text);
+
+      const CompanyMatch = CompanyRegex.exec(text);
+      const fieldMatch = fieldRegex.exec(text);
+      const LangaguaeMatch = LangaguaeRegex.exec(text);
+      const DeadlineMatch = DeadlineRegrex.exec(text);
+
+
+      
+      
+      
+      const jobInfo = {
+          title: titleMatch ? titleMatch[1].trim() : null,
+          description: descriptionMatch ? descriptionMatch[1].trim() : null,
+          qualifications: qualificationsMatch ? qualificationsMatch[1].trim() : null,
+          responsibilities: responsibilitiesMatch ? responsibilitiesMatch[1].trim() : null,
+          location: locationMatch ? locationMatch[1].trim() : null,
+         Salary_Information: salary_informationMatch ? salary_informationMatch[1].trim():null,
+         Workplace_Type : Workplace_TypeMatch ? Workplace_TypeMatch[1].trim():null,
+         Company : CompanyMatch ? CompanyMatch[1].trim():null, 
+         Field : fieldMatch ? fieldMatch[1].trim():null,
+         Language : LangaguaeMatch ? LangaguaeMatch[1].trim():null,
+         Deadline : DeadlineMatch ? DeadlineMatch[1].trim():null,
+
+         
+
+      };
+
+      
+
+     
+      res.json({ success: true, jobInfo });
+  } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
 /*
 // Function to parse OCR output and extract job information
