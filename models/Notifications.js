@@ -8,6 +8,9 @@ const notificationSchemas = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   isRead: { type: Boolean, default: false },
   job_offer: { type: Schema.Types.ObjectId, ref: 'JobOffer' },
+  joboffertitle:String,
+  companyname:String,
+  companyimage:String,
 });
 
 
