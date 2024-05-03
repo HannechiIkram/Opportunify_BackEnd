@@ -1,10 +1,9 @@
 const express = require("express");
-const User = require ("../models/user")
 const job_offer = require("../models/job_offer")
 
-const Notification = require('../models/Notification');
-
+const User = require ('../models/user')
 const UserCompanyModel = require('../models/user-company');
+const Notification  = require ('../models/Notification');
 
 async function getall(req, res) {
   try {
@@ -36,19 +35,6 @@ async function getoffershomepage(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-
-//la recherche par id
-
-async function getbyid(req, res) {
-  try {
-
-    const data = await job_offer.findById(req.params.id);
-    res.send(data);
-  } catch (err) {
-    res.send(err);
-  }
-}  
-
 
 
 
@@ -88,6 +74,11 @@ async function add(req, res) {
 async function add(req, res) {
   try {
     const companyId = req.user.id; // ID de l'utilisateur connecté
+    const company = await User.findById(companyId);
+    if (!company) {
+      return res.status(404).json({ error: "Company not found" });
+    }
+    const companyName = company.name; // Assigner le nom de l'entreprise
 
     // Destructure the required fields from req.body
     const {
@@ -151,7 +142,9 @@ if (!salaryRegex.test(salary_informations)) {
       field,
       salary_informations,
       deadline,
-      company: companyId // Associé à l'utilisateur de l'entreprise connecté
+      company: companyId,// Associé à l'utilisateur de l'entreprise connecté
+      companyName    ,   // Nom de l'entreprise associée
+
     });
 
     await newJobOffer.save();
@@ -176,6 +169,27 @@ if (!salaryRegex.test(salary_informations)) {
     res.status(400).json({ error: error.toString() });
   }
 }
+
+//la recherche par id
+async function getbyid(req, res) {
+  try {
+    const jobOffer = await job_offer.findById(req.params.id).populate('company', 'name');
+
+    if (!jobOffer) {
+      return res.status(404).json({ error: "Job offer not found" });
+    }
+
+    const response = {
+      ...jobOffer.toObject(),
+      companyName: jobOffer.company?.name || 'Unknown',
+    };
+
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(500).json({ error: err.toString() });
+  }
+}
+
 const createNotification = async (req, res) => {
   try {
     // Extract userId and message from the request body
