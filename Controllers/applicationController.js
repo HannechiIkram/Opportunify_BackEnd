@@ -78,7 +78,7 @@ async function acceptApplication(req, res) {
     const { id } = req.params;
     
     // Récupérer les détails de l'application
-    const application = await Application.findById(id);
+    const application = await Application.findById(id).populate('job_offer'); // Populer les détails de l'offre d'emploi associée à l'application
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
     }
@@ -88,32 +88,47 @@ async function acceptApplication(req, res) {
     
     // Vérifier l'e-mail récupéré dans la console
     console.log('Email récupéré:', jobSeekerEmail);
+// Récupérer le titre de l'offre d'emploi et le nom de l'entreprise associée
+const jobOffer = application.job_offer;
+const jobOfferTitle = application.job_offer.title;
+// Populer les détails de la compagnie associée au job_offer
+await jobOffer.populate('company');
 
-  // Send email notification
-  const mailOptions = {
-    from: 'opportunify@outlook.com',
-    to: jobSeekerEmail,
-    subject: 'Application Accepted ',
-    text: 'Your application has been accepted'
-  };
+// Maintenant, vous pouvez accéder aux détails de la compagnie à partir du job_offer
+const companyName = jobOffer.company.name;
+const companyImage = jobOffer.company.image;
 
-    
-       // Send email notification
-       transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending email notification:', error);
-        } else {
-          console.log('Email notification sent:', info.response);
-        }
-      });
-  
-      const notification = new Notifications({
-        job_seeker: application.job_seeker,
-        type: 'accepted',
-        application: id,
-      });
-      await notification.save();
-  
+    // Send email notification
+    const mailOptions = {
+      from: 'opportunify@outlook.com',
+      to: jobSeekerEmail,
+      subject: 'Application Accepted ',
+      html: `
+        <p>Your application for the job offer "${jobOfferTitle}" has been accepted.</p>
+        <p>Company: ${companyName}</p>
+      `
+    };
+
+    // Envoyer l'e-mail de notification
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email notification:', error);
+      } else {
+        console.log('Email notification sent:', info.response);
+      }
+    });
+
+    // Créer une notification pour indiquer que l'application a été acceptée
+    const notification = new Notifications({
+      job_seeker: application.job_seeker,
+      type: 'accepted',
+      application: id,
+      joboffertitle: jobOfferTitle,
+      companyname: companyName,
+      companyimage: companyImage
+    });
+    await notification.save();
+
     // Mettre à jour l'état de l'application
     const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: true, rejected: false }, { new: true });
 
@@ -124,14 +139,13 @@ async function acceptApplication(req, res) {
   }
 }
 
-
 // Fonction pour rejeter une application
 async function rejectApplication(req, res) {
   try {
     const { id } = req.params;
     
     // Récupérer les détails de l'application
-    const application = await Application.findById(id);
+    const application = await Application.findById(id).populate('job_offer'); // Populer les détails de l'offre d'emploi associée à l'application
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
     }
@@ -142,31 +156,52 @@ async function rejectApplication(req, res) {
     // Vérifier l'e-mail récupéré dans la console
     console.log('Email récupéré:', jobSeekerEmail);
 
-  // Send email notification
-  const mailOptions = {
-    from: 'opportunify@outlook.com',
-    to: jobSeekerEmail,
-    subject: 'Application Rejected ',
-    text: 'Your application has been rejected'
-  };
+    // Récupérer le titre de l'offre d'emploi et le nom de l'entreprise associée
+    const jobOffer = application.job_offer;
+    const jobOfferTitle = application.job_offer.title;
+// Populer les détails de la compagnie associée au job_offer
+await jobOffer.populate('company');
 
-    
-       // Send email notification
-       transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending email notification:', error);
-        } else {
-          console.log('Email notification sent:', info.response);
-        }
-      });
-  
-         // Créer une notification pour indiquer que l'application a été acceptée
-         const notification = new Notifications({
-          job_seeker: application.job_seeker,
-          type: 'rejected',
-          application: id,
-        });
-        await notification.save();
+// Maintenant, vous pouvez accéder aux détails de la compagnie à partir du job_offer
+const companyName = jobOffer.company.name;
+const companyImage = jobOffer.company.image;
+    // Vérifier les détails récupérés dans la console
+    console.log('Job Offer Title:', jobOfferTitle);
+    console.log('Company Name:', companyName);
+    console.log('Company Image:', companyImage);
+
+    // Send email notification
+    const mailOptions = {
+      from: 'opportunify@outlook.com',
+      to: jobSeekerEmail,
+      subject: 'Application Rejected ',
+      html: `
+        <p>Your application for the job "${jobOfferTitle}" has been rejected.</p>
+        <p>Company: ${companyName}</p>
+      `
+    };
+
+    // Envoyer l'e-mail de notification
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email notification:', error);
+      } else {
+        console.log('Email notification sent:', info.response);
+      }
+    });
+
+    // Créer une notification pour indiquer que l'application a été rejetée
+    const notification = new Notifications({
+      job_seeker: application.job_seeker,
+      type: 'rejected',
+      application: id,
+      joboffertitle: jobOfferTitle,
+      companyname: companyName,
+      companyimage: companyImage
+    });
+    await notification.save();
+
+
     // Mettre à jour l'état de l'application
     const updatedApplication = await Application.findByIdAndUpdate(id, { accepted: false, rejected: true }, { new: true });
 
@@ -176,6 +211,7 @@ async function rejectApplication(req, res) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
 
 
 module.exports = { getall, add , getbyid, getById , acceptApplication, rejectApplication };

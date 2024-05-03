@@ -174,12 +174,20 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
       return res.status(400).json({ error: 'Invalid offer ID' });
     }
 
-    // Find the job offer by its ID
-    const jobOffer = await JobOffer.findById(offerId);
+    const jobOffer = await JobOffer.findById(offerId).populate('company'); // Peupler les détails de l'entreprise associée à l'offre
     if (!jobOffer) {
       return res.status(404).json({ error: 'Job offer not found' });
     }
 
+    // Get the title of the job offer
+    const jobOfferTitle = jobOffer.title;
+    console.log('Job Offer Title:', jobOfferTitle);
+
+    // Récupérer le nom de l'entreprise associée à l'offre
+    const companyName = jobOffer.company.name;
+    const companyImage =jobOffer.company.image;
+
+    console.log('Company Image:', companyImage);
     // Check if the application deadline has passed
     const currentDate = new Date();
     const deadline = new Date(jobOffer.deadline);
@@ -224,6 +232,9 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
     const notification = new Notifications({
       job_seeker: newApplication.job_seeker,
       type: 'newapplication',
+      joboffertitle: jobOfferTitle,
+      companyname: companyName, 
+      companyimage:companyImage,
     });
     await notification.save();
     res.status(201).json({ message: 'Application submitted successfully' });
@@ -232,6 +243,7 @@ router.post('/apply', authMiddleware, upload.fields([{ name: 'cv', maxCount: 1 }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
   
 // GET route to retrieve application details by ID
 router.get('/get/:id', authMiddleware,async (req, res) => {

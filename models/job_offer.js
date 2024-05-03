@@ -18,11 +18,8 @@ const job_offer = new Schema({
  deadline:Date,
 status:String,
 
-
-
   
 });
-
 
 //module.exports = mongo.model("job_offer", job_offer,"manel");
 module.exports = mongoose.model("job_offer", job_offer);
